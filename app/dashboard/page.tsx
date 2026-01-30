@@ -1,0 +1,362 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Heart,
+  Sparkles,
+  Gift,
+  Settings,
+  Plus,
+  Copy,
+  ShoppingBag,
+  FileText,
+} from "lucide-react";
+
+type Tab = "overview" | "free" | "paid" | "drafts" | "orders" | "settings";
+
+export default function DashboardPage() {
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const [stats, setStats] = useState({
+    free_gifts: 0,
+    premium_live: 0,
+    premium_drafts: 0,
+    orders: 0,
+  });
+
+  const [freeGifts, setFreeGifts] = useState<any[]>([]);
+  const [premiumGifts, setPremiumGifts] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+
+useEffect(() => {
+  const loadDashboard = async () => {
+    try {
+      console.log("DASHBOARD[FE]: Fetching dashboard…");
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/dashboard-data`,
+        {
+          credentials: "include",
+          headers: {
+            Accept: "application/json",
+          },
+        }
+      );
+
+      console.log("DASHBOARD[FE]: Response status", res.status);
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("DASHBOARD[FE]: Failed response body", text);
+        throw new Error("Failed to load dashboard");
+      }
+
+      const data = await res.json();
+
+      console.log("DASHBOARD[FE]: Data received", data);
+
+      // ✅ MANDATORY STATE UPDATES
+      setStats(data.stats);
+      setFreeGifts(data.free || []);
+      setPremiumGifts([...(data.paid || []), ...(data.drafts || [])]);
+      setOrders(data.orders || []);
+      setRecentActivity(data.recent_activity || []);
+    } catch (err) {
+      console.error("DASHBOARD[FE]: Error", err);
+    } finally {
+      // ✅ VERY IMPORTANT
+      setLoading(false);
+    }
+  };
+
+  loadDashboard();
+}, []);
+
+  const copyLink = (link: string) => {
+    navigator.clipboard.writeText(`https://${link}`);
+    setCopiedLink(link);
+    setTimeout(() => setCopiedLink(null), 2000);
+  };
+
+  const tabs = [
+    { id: "overview", label: "Overview", icon: Heart },
+    { id: "free", label: "Free Gifts", icon: Gift },
+    { id: "paid", label: "Premium Gifts", icon: Sparkles },
+    { id: "drafts", label: "Drafts", icon: FileText },
+    { id: "orders", label: "Shop Orders", icon: ShoppingBag },
+    { id: "settings", label: "Settings", icon: Settings },
+  ] as const;
+
+  const livePremium = premiumGifts.filter((g) => g.status === "live");
+  const draftPremium = premiumGifts.filter((g) => g.status === "draft");
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Heart className="w-8 h-8 animate-pulse text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <main className="relative min-h-screen bg-background">
+      <div className="pt-24 pb-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-light text-foreground">
+                Welcome back
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Manage your gifts and experiences
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Link href="/free-gifts">
+                <Button variant="outline">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Free Gift
+                </Button>
+              </Link>
+              <Link href="/create">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Premium Experience
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex overflow-x-auto gap-2 mb-8 pb-2">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+                  activeTab === tab.id
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* OVERVIEW */}
+            {activeTab === "overview" && (
+              <div className="space-y-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <StatCard icon={Gift} label="Free Gifts" value={stats.free_gifts} />
+                  <StatCard icon={Sparkles} label="Premium Gifts" value={stats.premium_live} />
+                  <StatCard icon={FileText} label="Drafts" value={stats.premium_drafts} />
+                  <StatCard icon={ShoppingBag} label="Shop Orders" value={stats.orders} />
+                </div>
+
+                <div className="bg-card border border-border rounded-2xl p-6">
+                  <h3 className="text-xl font-medium mb-4">Recent Activity</h3>
+                  <div className="space-y-4">
+                    {recentActivity.length === 0 ? (
+                      <p className="text-muted-foreground">No recent activity</p>
+                    ) : (
+                      recentActivity.map((item) => (
+                        <GiftRow
+                          key={`${item.category}-${item.id}`}
+                          gift={item}
+                          onCopy={copyLink}
+                          copied={copiedLink}
+                        />
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* FREE */}
+            {activeTab === "free" &&
+              (freeGifts.length === 0 ? (
+                <EmptyState
+                  icon={Gift}
+                  title="No free gifts yet"
+                  description="Create your first free gift"
+                  actionLabel="Create Free Gift"
+                  actionHref="/free-gifts"
+                />
+              ) : (
+                freeGifts.map((gift) => (
+                  <GiftCard
+                    key={gift.id}
+                    gift={gift}
+                    onCopyLink={copyLink}
+                    copiedLink={copiedLink}
+                  />
+                ))
+              ))}
+
+            {/* PAID */}
+            {activeTab === "paid" &&
+              (livePremium.length === 0 ? (
+                <EmptyState
+                  icon={Sparkles}
+                  title="No premium gifts yet"
+                  description="Create a premium experience"
+                  actionLabel="Create Experience"
+                  actionHref="/create"
+                />
+              ) : (
+                livePremium.map((gift) => (
+                  <GiftCard
+                    key={gift.id}
+                    gift={gift}
+                    onCopyLink={copyLink}
+                    copiedLink={copiedLink}
+                  />
+                ))
+              ))}
+
+            {/* DRAFTS */}
+            {activeTab === "drafts" &&
+              (draftPremium.length === 0 ? (
+                <EmptyState
+                  icon={FileText}
+                  title="No drafts"
+                  description="Start creating to save drafts"
+                  actionLabel="Create Experience"
+                  actionHref="/create"
+                />
+              ) : (
+                draftPremium.map((gift) => (
+                  <DraftCard key={gift.id} gift={gift} />
+                ))
+              ))}
+
+            {/* ORDERS */}
+            {activeTab === "orders" &&
+              (orders.length === 0 ? (
+                <EmptyState
+                  icon={ShoppingBag}
+                  title="No orders yet"
+                  description="Browse the shop"
+                  actionLabel="Visit Shop"
+                  actionHref="/shop"
+                />
+              ) : (
+                orders.map((order) => (
+                  <OrderCard key={order.id} order={order} />
+                ))
+              ))}
+
+            {/* SETTINGS */}
+            {activeTab === "settings" && <SettingsPanel />}
+          </motion.div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+/* ---------- UI COMPONENTS (UNCHANGED) ---------- */
+
+function StatCard({ icon: Icon, label, value }: any) {
+  return (
+    <div className="bg-card border border-border rounded-2xl p-6">
+      <div className="flex items-center gap-3 mb-2">
+        <Icon className="w-5 h-5 text-primary" />
+        <span className="text-muted-foreground text-sm">{label}</span>
+      </div>
+      <p className="text-3xl font-light">{value}</p>
+    </div>
+  );
+}
+
+function EmptyState({ icon: Icon, title, description, actionLabel, actionHref }: any) {
+  return (
+    <div className="text-center py-16 bg-secondary/30 rounded-2xl">
+      <Icon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+      <h3 className="text-xl font-medium mb-2">{title}</h3>
+      <p className="text-muted-foreground mb-6">{description}</p>
+      <Link href={actionHref}>
+        <Button>{actionLabel}</Button>
+      </Link>
+    </div>
+  );
+}
+
+function GiftRow({ gift, onCopy, copied }: any) {
+  return (
+    <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-xl">
+      <div>
+        <p className="font-medium">
+          {gift.type} for {gift.recipient}
+        </p>
+        <p className="text-sm text-muted-foreground">{gift.date}</p>
+      </div>
+      {gift.link && (
+        <Button size="sm" variant="ghost" onClick={() => onCopy(gift.link)}>
+          {copied === gift.link ? "Copied!" : <><Copy className="w-4 h-4 mr-1" /> Copy</>}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function GiftCard({ gift, onCopyLink, copiedLink }: any) {
+  return (
+    <div className="flex items-center justify-between p-6 bg-card border border-border rounded-2xl">
+      <div>
+        <p className="font-medium">
+          {gift.type} for {gift.recipient}
+        </p>
+        <p className="text-sm text-muted-foreground">{gift.date}</p>
+      </div>
+      {gift.link && (
+        <Button size="sm" variant="ghost" onClick={() => onCopyLink(gift.link)}>
+          {copiedLink === gift.link ? "Copied!" : "Copy"}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function DraftCard({ gift }: any) {
+  return (
+    <div className="flex items-center justify-between p-6 bg-card border border-border rounded-2xl">
+      <p className="font-medium">Draft for {gift.recipient}</p>
+      <Button>Continue</Button>
+    </div>
+  );
+}
+
+function OrderCard({ order }: any) {
+  return (
+    <div className="flex items-center justify-between p-6 bg-card border border-border rounded-2xl">
+      <p className="font-medium">{order.item}</p>
+      <span>{order.status}</span>
+    </div>
+  );
+}
+
+function SettingsPanel() {
+  return (
+    <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
+      <Button variant="destructive">Delete Account</Button>
+    </div>
+  );
+}

@@ -1,315 +1,309 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navigation } from "@/components/navigation";
+import { FloatingElements } from "@/components/floating-elements";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Share2, Heart, Sparkles, Gift } from "lucide-react";
-import Link from "next/link";
+import {
+  Calendar,
+  Clock,
+  Heart,
+  Link as LinkIcon,
+  Check,
+} from "lucide-react";
 
-type Stage = "create" | "experience";
+type Stage = "create" | "preview";
 
-interface SurpriseData {
+interface Memory {
+  sender: string;
+  receiver: string;
+  title: string;
   message: string;
-  recipientName: string;
-  senderName: string;
+  date: string;
+  time?: string | null;
 }
 
 export default function SurprisePage() {
   const [stage, setStage] = useState<Stage>("create");
-  const [surpriseData, setSurpriseData] = useState<SurpriseData>({
+  const [now, setNow] = useState(new Date());
+  const [copied, setCopied] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+
+  const [memory, setMemory] = useState<Memory>({
+    sender: "",
+    receiver: "",
+    title: "",
     message: "",
-    recipientName: "",
-    senderName: "",
+    date: "",
+    time: "",
   });
-  const [boxOpened, setBoxOpened] = useState(false);
-  const [lidLifted, setLidLifted] = useState(false);
-  const [showMessage, setShowMessage] = useState(false);
-  const [confetti, setConfetti] = useState<{ x: number; y: number; color: string; rotation: number }[]>([]);
 
-  const startExperience = () => {
-    if (surpriseData.recipientName && surpriseData.senderName && surpriseData.message) {
-      setStage("experience");
-    }
-  };
+  /* ================= CREATE → BACKEND ================= */
 
-  const openBox = () => {
-    if (!boxOpened) {
-      setBoxOpened(true);
-      setLidLifted(true);
-
-      // Generate confetti
-      const newConfetti = [...Array(50)].map(() => ({
-        x: Math.random() * 400 - 200,
-        y: -(Math.random() * 300 + 100),
-        color: ["#e11d48", "#f472b6", "#fbbf24", "#a855f7", "#22c55e"][Math.floor(Math.random() * 5)],
-        rotation: Math.random() * 720 - 360,
-      }));
-      setConfetti(newConfetti);
-
-      setTimeout(() => setShowMessage(true), 800);
-    }
-  };
-
-  const shareGift = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: "A Surprise from " + surpriseData.senderName,
-        text: `${surpriseData.senderName} sent you a surprise on Tohfaah!`,
-        url: window.location.href,
-      });
-    }
-  };
-
-  // Create Stage
-  if (stage === "create") {
-    return (
-      <main className="relative min-h-screen bg-gradient-to-br from-pink-50 via-rose-50 to-purple-50">
-        <Navigation />
-        <div className="pt-28 pb-20 px-4 max-w-xl mx-auto">
-          <Link
-            href="/free-gifts"
-            className="inline-flex items-center text-muted-foreground hover:text-primary mb-8"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Free Gifts
-          </Link>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-10"
-          >
-            <div className="w-20 h-20 rounded-full bg-pink-100 flex items-center justify-center mx-auto mb-6">
-              <Gift className="w-10 h-10 text-primary" />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-light text-foreground mb-3">
-              Mini <span className="italic text-primary">Surprise</span>
-            </h1>
-            <p className="text-muted-foreground">
-              A simple gift box with a sweet message inside
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-card rounded-2xl p-6 shadow-lg border border-border space-y-6"
-          >
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Who is this surprise for?
-              </label>
-              <Input
-                value={surpriseData.recipientName}
-                onChange={(e) =>
-                  setSurpriseData({ ...surpriseData, recipientName: e.target.value })
-                }
-                placeholder="Their name..."
-                className="text-lg"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Your name
-              </label>
-              <Input
-                value={surpriseData.senderName}
-                onChange={(e) =>
-                  setSurpriseData({ ...surpriseData, senderName: e.target.value })
-                }
-                placeholder="Your name..."
-                className="text-lg"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Your surprise message
-              </label>
-              <Textarea
-                value={surpriseData.message}
-                onChange={(e) =>
-                  setSurpriseData({ ...surpriseData, message: e.target.value })
-                }
-                placeholder="What surprise message would you like to share?"
-                rows={4}
-                className="text-lg"
-              />
-            </div>
-
-            <Button
-              onClick={startExperience}
-              disabled={!surpriseData.recipientName || !surpriseData.senderName || !surpriseData.message}
-              className="w-full py-6 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              <Sparkles className="w-5 h-5 mr-2" />
-              Wrap the Gift
-            </Button>
-          </motion.div>
-        </div>
-      </main>
+  const createMoment = async () => {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gift_type: "moment",
+          recipient_name: memory.receiver,
+          sender_name: memory.sender,
+          gift_data: {
+            title: memory.title,
+            message: memory.message,
+            date: memory.date,
+            time: memory.time || null,
+          },
+        }),
+      }
     );
-  }
 
-  // Experience Stage
+    if (!res.ok) {
+      alert("Failed to create moment");
+      return;
+    }
+
+    const data = await res.json();
+    setToken(data.token);
+    setStage("preview");
+  };
+
+  /* ================= COUNTDOWN (UNCHANGED DESIGN) ================= */
+
+  const targetDate = useMemo(() => {
+    if (!memory.date) return null;
+    if (!memory.time) return new Date(`${memory.date}T23:59:59`);
+    return new Date(`${memory.date}T${memory.time}:00`);
+  }, [memory.date, memory.time]);
+
+  useEffect(() => {
+    if (!targetDate) return;
+    const i = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(i);
+  }, [targetDate]);
+
+  const diff = targetDate
+    ? Math.max(targetDate.getTime() - now.getTime(), 0)
+    : 0;
+
+  const time = {
+    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+    minutes: Math.floor((diff / (1000 * 60)) % 60),
+    seconds: Math.floor((diff / 1000) % 60),
+  };
+
+  const shareUrl = token
+    ? `${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/surprise/${token}`
+    : "";
+
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <main className="relative min-h-screen bg-gradient-to-br from-rose-900 via-pink-900 to-purple-900 overflow-hidden">
-      {/* Background sparkles */}
-      <div className="absolute inset-0 pointer-events-none">
-        {[...Array(30)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-2 h-2 bg-white rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              opacity: [0.2, 0.8, 0.2],
-              scale: [0.5, 1, 0.5],
-            }}
-            transition={{
-              duration: 2 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
-      </div>
+    <main className="relative min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-background">
+      <FloatingElements density="low" />
+      <Navigation />
 
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <p className="text-rose-300 text-lg mb-2">For {surpriseData.recipientName}</p>
-          <h1 className="text-3xl md:text-4xl font-light text-rose-50">
-            You have a <span className="italic text-rose-300">surprise!</span>
-          </h1>
-        </motion.div>
-
-        {/* Gift Box */}
-        <div className="relative">
-          {/* Confetti */}
-          <AnimatePresence>
-            {confetti.map((c, i) => (
+      <div className="pt-28 pb-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto">
+          <AnimatePresence mode="wait">
+            {/* ================= CREATE ================= */}
+            {stage === "create" && (
               <motion.div
-                key={i}
-                className="absolute left-1/2 top-1/2 w-3 h-3 rounded-sm"
-                style={{ backgroundColor: c.color }}
-                initial={{ x: 0, y: 0, rotate: 0, opacity: 1 }}
-                animate={{
-                  x: c.x,
-                  y: c.y + 400,
-                  rotate: c.rotation,
-                  opacity: 0,
-                }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-              />
-            ))}
-          </AnimatePresence>
-
-          <motion.button
-            onClick={openBox}
-            className="relative cursor-pointer"
-            whileHover={!boxOpened ? { scale: 1.05 } : {}}
-            whileTap={!boxOpened ? { scale: 0.98 } : {}}
-          >
-            {/* Box lid */}
-            <motion.div
-              className="absolute -top-4 left-1/2 -translate-x-1/2 w-52 h-12 bg-gradient-to-b from-rose-400 to-rose-500 rounded-t-lg z-20 shadow-lg"
-              animate={lidLifted ? { y: -80, rotateX: -30 } : {}}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              style={{ transformOrigin: "top center" }}
-            >
-              {/* Ribbon on lid */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-full bg-rose-600" />
-              </div>
-              {/* Bow */}
-              <motion.div
-                className="absolute -top-6 left-1/2 -translate-x-1/2"
-                animate={lidLifted ? { scale: 1.2 } : {}}
+                key="create"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-8"
               >
-                <div className="relative">
-                  <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-6 h-4 bg-rose-600 rounded-full" />
-                  <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-6 h-4 bg-rose-600 rounded-full" />
-                  <div className="w-4 h-4 bg-rose-700 rounded-full relative z-10" />
+                <div className="text-center">
+                  <h1 className="text-3xl md:text-4xl font-light mb-2">
+                    Create a{" "}
+                    <span className="italic text-primary">Moment</span>
+                  </h1>
+                  <p className="text-muted-foreground">
+                    A day worth waiting for.
+                  </p>
                 </div>
-              </motion.div>
-            </motion.div>
 
-            {/* Box body */}
-            <div className="relative w-48 h-40 bg-gradient-to-b from-rose-500 to-rose-600 rounded-b-lg shadow-2xl">
-              {/* Ribbon on body */}
-              <div className="absolute left-1/2 -translate-x-1/2 w-8 h-full bg-rose-700" />
-
-              {/* Inner glow when opened */}
-              <AnimatePresence>
-                {boxOpened && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="absolute inset-4 bg-gradient-to-t from-yellow-200 via-yellow-100 to-white rounded-lg"
+                <div className="bg-white rounded-3xl p-6 shadow-xl space-y-5">
+                  <Input
+                    placeholder="Your name"
+                    value={memory.sender}
+                    onChange={(e) =>
+                      setMemory({ ...memory, sender: e.target.value })
+                    }
                   />
-                )}
-              </AnimatePresence>
-            </div>
+                  <Input
+                    placeholder="Who is this for?"
+                    value={memory.receiver}
+                    onChange={(e) =>
+                      setMemory({ ...memory, receiver: e.target.value })
+                    }
+                  />
+                  <Input
+                    placeholder="Why this day matters"
+                    value={memory.title}
+                    onChange={(e) =>
+                      setMemory({ ...memory, title: e.target.value })
+                    }
+                  />
+                  <Textarea
+                    placeholder="Write the message they'll read..."
+                    rows={4}
+                    value={memory.message}
+                    onChange={(e) =>
+                      setMemory({ ...memory, message: e.target.value })
+                    }
+                  />
 
-            {!boxOpened && (
-              <p className="text-rose-300 mt-6 text-sm">Click to open</p>
-            )}
-          </motion.button>
-        </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="date"
+                        className="pl-10"
+                        value={memory.date}
+                        onChange={(e) =>
+                          setMemory({ ...memory, date: e.target.value })
+                        }
+                      />
+                    </div>
 
-        {/* Message */}
-        <AnimatePresence>
-          {showMessage && (
-            <motion.div
-              initial={{ opacity: 0, y: 50, scale: 0.8 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
-              className="mt-12 text-center max-w-md"
-            >
-              <motion.div
-                className="bg-white rounded-2xl p-8 shadow-2xl relative"
-                initial={{ rotate: -2 }}
-                animate={{ rotate: 2 }}
-                transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-              >
-                <Heart className="w-10 h-10 text-rose-500 mx-auto mb-4 fill-current" />
-                <p className="text-xl text-foreground leading-relaxed font-serif">
-                  {surpriseData.message}
-                </p>
-                <div className="mt-6 pt-4 border-t border-rose-100">
-                  <p className="text-rose-500 text-sm">With love,</p>
-                  <p className="text-lg font-medium text-foreground">{surpriseData.senderName}</p>
+                    <div className="relative opacity-50">
+                      <Clock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="time"
+                        className="pl-10"
+                        value={memory.time || ""}
+                        onChange={(e) =>
+                          setMemory({
+                            ...memory,
+                            time: e.target.value || null,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    className="w-full py-6 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
+                    disabled={
+                      !memory.sender ||
+                      !memory.receiver ||
+                      !memory.title ||
+                      !memory.message ||
+                      !memory.date
+                    }
+                    onClick={createMoment}
+                  >
+                    Preview Moment
+                  </Button>
                 </div>
               </motion.div>
+            )}
 
-              <div className="mt-8 flex justify-center gap-4">
-                <Button
-                  onClick={shareGift}
-                  className="bg-rose-500 hover:bg-rose-600 text-white"
-                >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Share
-                </Button>
-                <Link href="/free-gifts">
-                  <Button variant="outline" className="border-rose-400 text-rose-300 hover:bg-rose-900 bg-transparent">
-                    Create Another
+            {/* ================= PREVIEW ================= */}
+            {stage === "preview" && (
+              <motion.div
+                key="preview"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-8"
+              >
+                <div className="text-center">
+                  <h2 className="text-2xl md:text-3xl font-light mb-2">
+                    For{" "}
+                    <span className="italic text-primary">
+                      {memory.receiver}
+                    </span>
+                  </h2>
+                  <p className="text-muted-foreground">
+                    A moment that’s counting down
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-[32px] p-10 shadow-2xl text-center">
+                  <div className="grid grid-cols-4 gap-4 mb-8">
+                    {Object.entries(time).map(([k, v]) => (
+                      <div
+                        key={k}
+                        className="bg-[#faf7f4] rounded-2xl py-5"
+                      >
+                        <AnimatePresence mode="wait">
+  <motion.div
+    key={String(v).padStart(2, "0")}
+    initial={{ rotateX: 90, opacity: 0 }}
+    animate={{ rotateX: 0, opacity: 1 }}
+    exit={{ rotateX: -90, opacity: 0 }}
+    transition={{ duration: 0.35, ease: "easeInOut" }}
+    className="text-4xl font-light font-mono tabular-nums"
+    style={{ transformOrigin: "center" }}
+  >
+    {String(v).padStart(2, "0")}
+  </motion.div>
+</AnimatePresence>
+
+                        <div className="text-[10px] tracking-widest mt-3 text-muted-foreground">
+                          {k.toUpperCase()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Heart className="w-10 h-10 text-primary fill-primary mx-auto mb-4" />
+
+                  <h3 className="text-xl font-light mb-3">
+                    {memory.title}
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    {memory.message}
+                  </p>
+                  <p className="text-sm text-primary">
+                    — {memory.sender}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <Button
+                    onClick={copyLink}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4 mr-2" /> Link Copied
+                      </>
+                    ) : (
+                      <>
+                        <LinkIcon className="w-4 h-4 mr-2" /> Copy Share Link
+                      </>
+                    )}
                   </Button>
-                </Link>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
+                  <Button
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => setStage("create")}
+                  >
+                    Create Another Moment
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </main>
   );

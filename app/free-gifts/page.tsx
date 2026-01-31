@@ -16,6 +16,7 @@ import {
   Candy,
   PartyPopper,
 } from "lucide-react";
+import { CalendarHeart } from "lucide-react";
 
 const freeGifts = [
   {
@@ -67,9 +68,9 @@ const freeGifts = [
     preview: "Words unfold",
   },
   {
-    icon: Gift,
-    title: "Mini Surprise",
-    description: "A simple box to open with a sweet message inside",
+    icon: CalendarHeart,
+    title: "Create Reminder",
+    description: "A shared moment that counts down to a special day",
     color: "from-rose-50 to-pink-100",
     href: "/free-gifts/surprise",
     preview: "Open the box",

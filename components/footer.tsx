@@ -6,17 +6,21 @@ import { Heart } from "lucide-react";
 
 const footerLinks = {
   experience: [
-    { label: "Free Gifts", href: "/free-gifts" },
-    { label: "Premium Experiences", href: "/coming-soon" },
-    { label: "Shop", href: "/coming-soon" },
+    { id: "free-gifts", label: "Free Gifts", href: "/free-gifts" },
+    {
+      id: "premium-experiences",
+      label: "Premium Experiences",
+      href: "/coming-soon",
+    },
+    { id: "shop", label: "Shop", href: "/coming-soon" },
   ],
   company: [
-    { label: "About Us", href: "/about" },
-    { label: "Contact", href: "/contact" },
+    { id: "about", label: "About Us", href: "/about" },
+    { id: "contact", label: "Contact", href: "/contact" },
   ],
   legal: [
-    { label: "Privacy Policy", href: "/privacy" },
-    { label: "Terms of Service", href: "/terms" },
+    { id: "privacy", label: "Privacy Policy", href: "/privacy" },
+    { id: "terms", label: "Terms of Service", href: "/terms" },
   ],
 };
 
@@ -29,7 +33,9 @@ export function Footer() {
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
               <Heart className="h-6 w-6 text-primary fill-primary" />
-              <span className="text-xl font-semibold text-foreground">Tohfaah</span>
+              <span className="text-xl font-semibold text-foreground">
+                Tohfaah
+              </span>
             </Link>
             <p className="text-muted-foreground leading-relaxed">
               Where feelings become experiences, and gifts become memories.
@@ -41,7 +47,7 @@ export function Footer() {
             <h4 className="text-foreground font-medium mb-4">Experience</h4>
             <ul className="space-y-3">
               {footerLinks.experience.map((link) => (
-                <li key={link.href}>
+                <li key={link.id}>
                   <Link
                     href={link.href}
                     className="text-muted-foreground hover:text-primary transition-colors"
@@ -58,7 +64,7 @@ export function Footer() {
             <h4 className="text-foreground font-medium mb-4">Company</h4>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
-                <li key={link.href}>
+                <li key={link.id}>
                   <Link
                     href={link.href}
                     className="text-muted-foreground hover:text-primary transition-colors"
@@ -75,7 +81,7 @@ export function Footer() {
             <h4 className="text-foreground font-medium mb-4">Legal</h4>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
-                <li key={link.href}>
+                <li key={link.id}>
                   <Link
                     href={link.href}
                     className="text-muted-foreground hover:text-primary transition-colors"

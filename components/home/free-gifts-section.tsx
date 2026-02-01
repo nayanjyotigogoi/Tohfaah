@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Heart, Camera, Flower2, Gift, MessageCircleHeart, Hand } from "lucide-react";
+import { Heart, Camera, Flower2, Gift, MessageCircleHeart, Hand, CalendarHeart } from "lucide-react";
 
 const freeGifts = [
   {
@@ -41,12 +41,13 @@ const freeGifts = [
     href: "/free-gifts/flowers",
   },
   {
-    icon: MessageCircleHeart,
-    title: "Asking Out",
-    description: "A simple, heartfelt letter",
-    color: "from-pink-100 to-red-50",
-    href: "/free-gifts/letter",
-  },
+  icon: CalendarHeart,
+  title: "Create Reminder",
+  description: "A shared moment that counts to a special day",
+  color: "from-pink-100 to-rose-50",
+  href: "/free-gifts/surprise",
+}
+
 ];
 
 const containerVariants = {

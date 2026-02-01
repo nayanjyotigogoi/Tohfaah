@@ -1,15 +1,41 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Share2, Heart, Sparkles, Send } from "lucide-react";
+import {
+  ArrowLeft,
+  Share2,
+  Sparkles,
+  Copy,
+  RotateCcw,
+} from "lucide-react";
 import Link from "next/link";
+import { Playfair_Display, Dancing_Script } from "next/font/google";
 
-type Stage = "create" | "experience";
+const playfair = Playfair_Display({ subsets: ["latin"] });
+const dancing = Dancing_Script({ subsets: ["latin"] });
+
+type Stage = "create" | "experience" | "share";
+
+/* ---------------- PAPER CONFIG ---------------- */
+const PAPER_STYLES = [
+  { id: "classic", src: "/letters/paper-1.jpg", aspect: "3/4", maxHeight: 520, padding: { x: 12, y: 14 } },
+  { id: "scallop", src: "/letters/paper-2.jpg", aspect: "3/4", maxHeight: 520, padding: { x: 14, y: 16 } },
+  { id: "vintage", src: "/letters/paper-3.jpg", aspect: "3/4", maxHeight: 560, padding: { x: 13, y: 18 } },
+  { id: "rose", src: "/letters/paper-4.jpg", aspect: "3/4", maxHeight: 540, padding: { x: 12, y: 16 } },
+  { id: "cream", src: "/letters/paper-5.jpg", aspect: "3/4", maxHeight: 500, padding: { x: 11, y: 15 } },
+  { id: "parchment", src: "/letters/paper-6.jpg", aspect: "3/4", maxHeight: 560, padding: { x: 15, y: 18 } },
+  { id: "love", src: "/letters/paper-7.jpg", aspect: "3/4", maxHeight: 520, padding: { x: 12, y: 17 } },
+  { id: "minimal", src: "/letters/paper-8.jpg", aspect: "3/4", maxHeight: 500, padding: { x: 10, y: 12 } },
+  { id: "elegant", src: "/letters/paper-9.jpg", aspect: "3/4", maxHeight: 560, padding: { x: 14, y: 18 } },
+  { id: "valentine", src: "/letters/paper-10.jpg", aspect: "3/4", maxHeight: 520, padding: { x: 13, y: 16 } },
+];
+
+const MAX_CHARS = 260;
 
 export default function LoveLetterPage() {
   const [stage, setStage] = useState<Stage>("create");
@@ -17,283 +43,265 @@ export default function LoveLetterPage() {
   const [recipientName, setRecipientName] = useState("");
   const [senderName, setSenderName] = useState("");
   const [content, setContent] = useState("");
-
-  const [shareToken, setShareToken] = useState<string | null>(null);
+  const [paperId, setPaperId] = useState("classic");
 
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showEnvelope, setShowEnvelope] = useState(true);
   const [envelopeOpened, setEnvelopeOpened] = useState(false);
 
-  /* ================= CREATE (DB) ================= */
-  const startExperience = async () => {
-    if (!recipientName || !senderName || !content) return;
+  const [shareToken, setShareToken] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            gift_type: "letter",
-            recipient_name: recipientName,
-            sender_name: senderName,
-            gift_data: { content },
-          }),
-        }
-      );
+  const bodyRef = useRef<HTMLDivElement>(null);
 
-      if (!res.ok) throw new Error();
+  const paper = useMemo(
+    () => PAPER_STYLES.find((p) => p.id === paperId)!,
+    [paperId]
+  );
 
-      const data = await res.json();
-      setShareToken(data.token);
-      setStage("experience");
-    } catch {
-      alert("Failed to create letter. Please try again.");
+  const now = useMemo(() => new Date(), []);
+  const dateStr = now.toLocaleDateString();
+  const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  const BODY_HEIGHT = paper.maxHeight * 0.45;
+
+  /* ---------------- CREATE LETTER (🔥 FIX) ---------------- */
+  const createLetter = async () => {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gift_type: "letter",
+          recipient_name: recipientName,
+          sender_name: senderName,
+          gift_data: {
+            content,
+            paper: paperId,
+          },
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      alert("Failed to create letter");
+      return;
     }
+
+    const data = await res.json();
+    setShareToken(data.token); // ✅ THIS WAS MISSING
+    setStage("experience");
   };
 
-  /* ================= ENVELOPE ================= */
-  const openEnvelope = () => {
-    setEnvelopeOpened(true);
-    setTimeout(() => {
-      setShowEnvelope(false);
-      setIsTyping(true);
-    }, 1500);
-  };
-
-  /* ================= TYPE EFFECT ================= */
+  /* ---------------- TYPE EFFECT ---------------- */
   useEffect(() => {
-    if (isTyping && displayedText.length < content.length) {
-      const t = setTimeout(() => {
-        setDisplayedText(content.slice(0, displayedText.length + 1));
-      }, 50);
-      return () => clearTimeout(t);
-    }
+    if (!isTyping) return;
+
     if (displayedText.length >= content.length) {
       setIsTyping(false);
+      return;
     }
-  }, [isTyping, displayedText, content]);
 
-  const shareGift = () => {
+    const next = content.slice(0, displayedText.length + 1);
+    setDisplayedText(next);
+
+    requestAnimationFrame(() => {
+      if (!bodyRef.current) return;
+      if (bodyRef.current.scrollHeight > BODY_HEIGHT) {
+        setDisplayedText(displayedText);
+        setIsTyping(false);
+      }
+    });
+  }, [isTyping, displayedText, content, BODY_HEIGHT]);
+
+  /* ---------------- COPY ---------------- */
+  const handleCopy = async () => {
     if (!shareToken) return;
     const url = `${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/letter/${shareToken}`;
-
-    if (navigator.share) {
-      navigator.share({
-        title: "A Love Letter",
-        text: `${senderName} wrote you a love letter 💌`,
-        url,
-      });
-    }
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  /* ================= CREATE STAGE ================= */
-  if (stage === "create") {
+  /* ---------------- RESET ---------------- */
+  const handleReset = () => {
+    setStage("create");
+    setRecipientName("");
+    setSenderName("");
+    setContent("");
+    setDisplayedText("");
+    setIsTyping(false);
+    setShowEnvelope(true);
+    setEnvelopeOpened(false);
+    setShareToken(null);
+    setCopied(false);
+  };
+
+  /* ================= EXPERIENCE ================= */
+  if (stage === "experience") {
     return (
-      <main className="relative min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-red-50">
+      <main className="bg-[#f3ebe2]">
         <Navigation />
 
-        <div className="pt-28 pb-20 px-4 max-w-xl mx-auto">
-          <Link
-            href="/free-gifts"
-            className="inline-flex items-center text-muted-foreground hover:text-primary mb-8"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Free Gifts
-          </Link>
+        <div className="flex flex-col items-center px-4 py-36 gap-8">
+          <AnimatePresence>
+            {showEnvelope && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, y: -40 }}
+              >
+                <motion.button
+                  onClick={() => {
+                    setEnvelopeOpened(true);
+                    setTimeout(() => {
+                      setShowEnvelope(false);
+                      setIsTyping(true);
+                    }, 1200);
+                  }}
+                >
+                  <div className="relative w-64 h-44">
+                    <img src="/letters/envelope-front.png" className="absolute inset-0" />
+                    <motion.img
+                      src="/letters/envelope-front.png"
+                      className="absolute inset-0 origin-top"
+                      animate={envelopeOpened ? { rotateX: -180 } : {}}
+                      transition={{ duration: 1 }}
+                    />
+                    <img src="/letters/envelope-front.png" className="absolute inset-0" />
+                  </div>
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-10"
-          >
-            <div className="w-20 h-20 rounded-full bg-rose-100 flex items-center justify-center mx-auto mb-6">
-              <Send className="w-10 h-10 text-primary" />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-light mb-3">
-              Love <span className="italic text-primary">Letter</span>
-            </h1>
-            <p className="text-muted-foreground">
-              Write a heartfelt letter that types out word by word
-            </p>
-          </motion.div>
+          {!showEnvelope && (
+            <>
+              <div
+                className={`relative aspect-[${paper.aspect}]`}
+                style={{
+                  maxHeight: paper.maxHeight,
+                  width: "100%",
+                  maxWidth: 520,
+                  backgroundImage: `url(${paper.src})`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundSize: "contain",
+                  backgroundPosition: "center",
+                }}
+              >
+                <div
+                  className="absolute inset-0 text-[#7b1e1e] flex flex-col"
+                  style={{ padding: `${paper.padding.y}% ${paper.padding.x}%` }}
+                >
+                  <p className={`mb-3 text-lg ${playfair.className}`} style={{ paddingLeft: "58px" }}>
+                    Dear {recipientName},
+                  </p>
 
-          <div className="bg-card rounded-2xl p-6 shadow-lg border space-y-6">
-            <Input
-              value={recipientName}
-              onChange={(e) => setRecipientName(e.target.value)}
-              placeholder="Who is this for?"
-              className="text-lg"
-            />
-            <Input
-              value={senderName}
-              onChange={(e) => setSenderName(e.target.value)}
-              placeholder="Your name"
-              className="text-lg"
-            />
-            <Textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={10}
-              className="text-lg font-serif"
-              placeholder="Dear love..."
-            />
+                  <div
+                    ref={bodyRef}
+                    style={{ maxHeight: BODY_HEIGHT, paddingLeft: "58px", paddingRight: "58px" }}
+                    className={`overflow-hidden whitespace-pre-wrap leading-loose text-xl ${dancing.className}`}
+                  >
+                    {displayedText}
+                  </div>
 
-            <Button
-              onClick={startExperience}
-              disabled={!recipientName || !senderName || !content}
-              className="w-full py-6 text-lg"
-            >
-              <Sparkles className="w-5 h-5 mr-2" />
-              Seal the Letter
-            </Button>
-          </div>
+                  {!isTyping && (
+                    <div className="mt-3 text-right text-sm" style={{ paddingRight: "68px" }}>
+                      <p>~ {senderName}</p>
+                      <p>{dateStr}, {timeStr}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {!isTyping && (
+                <div className="flex gap-4">
+                  <Button variant="outline" onClick={handleReset}>
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Start Again
+                  </Button>
+                  <Button onClick={() => setStage("share")}>
+                    <Share2 className="w-5 h-5 mr-2" />
+                    Share
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </main>
     );
   }
 
-  /* ================= EXPERIENCE STAGE ================= */
+  /* ================= SHARE ================= */
+  if (stage === "share") {
+    return (
+      <main className="bg-[#f3ebe2]">
+        <Navigation />
+
+        <div className="pt-28 pb-20 px-4 max-w-xl mx-auto space-y-6 text-center">
+          <h2 className="text-2xl font-light">
+            Letter <span className="italic text-primary">Ready</span>
+          </h2>
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 p-4 bg-secondary rounded-xl font-mono text-sm break-all">
+              {`${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/letter/${shareToken}`}
+            </div>
+            <button
+              onClick={handleCopy}
+              className="p-3 rounded-full border border-border hover:bg-muted transition"
+            >
+              <Copy className="w-4 h-4" />
+            </button>
+          </div>
+
+          {copied && (
+            <p className="text-xs text-muted-foreground">
+              Link copied — paste it anywhere 💌
+            </p>
+          )}
+
+          <Button variant="outline" onClick={handleReset}>
+            Create Another
+          </Button>
+        </div>
+      </main>
+    );
+  }
+
+  /* ================= CREATE ================= */
   return (
-    <main className="relative min-h-screen bg-gradient-to-br from-rose-100 via-pink-100 to-red-100 overflow-hidden">
-      {/* Floating hearts */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(15)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute text-rose-300"
-            initial={{
-              x: Math.random() * window.innerWidth,
-              y: window.innerHeight + 50,
-              rotate: Math.random() * 360,
-              scale: 0.5 + Math.random() * 0.5,
-            }}
-            animate={{ y: -100, rotate: Math.random() * 360 }}
-            transition={{
-              duration: 8 + Math.random() * 4,
-              repeat: Infinity,
-              delay: Math.random() * 5,
-              ease: "linear",
-            }}
-          >
-            <Heart className="w-6 h-6 fill-current" />
-          </motion.div>
-        ))}
-      </div>
+    <main className="min-h-screen bg-[#f3ebe2]">
+      <Navigation />
 
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-12">
-        {/* ENVELOPE */}
-        <AnimatePresence>
-          {showEnvelope && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8, y: -50 }}
-              className="text-center"
-            >
-              <p className="text-rose-600 text-lg mb-6">
-                A letter for {recipientName}
-              </p>
+      <div className="pt-28 pb-20 px-4 max-w-xl mx-auto">
+        <Link href="/free-gifts" className="inline-flex items-center mb-8">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Link>
 
-              <motion.button
-                onClick={openEnvelope}
-                className="relative"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {/* Envelope body */}
-                <div className="w-64 h-44 bg-gradient-to-b from-rose-200 to-rose-300 rounded-lg shadow-xl relative overflow-hidden">
-                  {/* Flap */}
-                  <motion.div
-                    className="absolute top-0 left-0 right-0 h-24 origin-top"
-                    animate={envelopeOpened ? { rotateX: 180 } : {}}
-                    transition={{ duration: 0.8 }}
-                    style={{ transformStyle: "preserve-3d" }}
-                  >
-                    <div
-                      className="absolute inset-0 bg-gradient-to-b from-rose-400 to-rose-300"
-                      style={{ clipPath: "polygon(0 0, 50% 100%, 100% 0)" }}
-                    />
-                  </motion.div>
+        <Input placeholder="Recipient name" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} />
+        <Input placeholder="Your name" value={senderName} onChange={(e) => setSenderName(e.target.value)} className="mt-4" />
+        <Textarea placeholder="Write your letter..." value={content} maxLength={MAX_CHARS} onChange={(e) => setContent(e.target.value)} rows={6} className={`mt-4 ${dancing.className}`} />
 
-                  {/* Seal */}
-                  <motion.div
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center shadow-lg z-10"
-                    animate={envelopeOpened ? { scale: 0, opacity: 0 } : {}}
-                  >
-                    <Heart className="w-6 h-6 text-white fill-current" />
-                  </motion.div>
+        <p className="text-sm text-right mt-1">{content.length}/{MAX_CHARS}</p>
 
-                  <div className="absolute bottom-0 left-4 right-4 h-32 bg-white rounded-t-sm" />
-                </div>
+        <div className="grid grid-cols-5 gap-3 mt-6">
+          {PAPER_STYLES.map((p) => (
+            <button key={p.id} onClick={() => setPaperId(p.id)} className={`border rounded overflow-hidden ${paperId === p.id ? "ring-2 ring-rose-400" : ""}`}>
+              <img src={p.src} className="aspect-[3/4] object-cover" />
+            </button>
+          ))}
+        </div>
 
-                <p className="text-rose-500 mt-4 text-sm">Click to open</p>
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* LETTER */}
-        <AnimatePresence>
-          {!showEnvelope && (
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="max-w-2xl w-full"
-            >
-              <div
-                className="bg-white rounded-lg shadow-2xl p-8 md:p-12"
-                style={{
-                  backgroundImage: `
-                    repeating-linear-gradient(
-                      transparent,
-                      transparent 31px,
-                      #f0f0f0 31px,
-                      #f0f0f0 32px
-                    )
-                  `,
-                  backgroundPosition: "0 60px",
-                }}
-              >
-                <div className="font-serif text-xl leading-loose whitespace-pre-wrap min-h-[200px]">
-                  {displayedText}
-                  {isTyping && (
-                    <motion.span
-                      className="inline-block w-0.5 h-6 bg-rose-500 ml-1"
-                      animate={{ opacity: [1, 0] }}
-                      transition={{ duration: 0.5, repeat: Infinity }}
-                    />
-                  )}
-                </div>
-
-                {!isTyping && (
-                  <div className="mt-8 pt-4 border-t border-rose-200 text-right">
-                    <p className="text-rose-500 italic">With love,</p>
-                    <p className="text-2xl font-serif mt-2">{senderName}</p>
-                  </div>
-                )}
-              </div>
-
-              {!isTyping && (
-                <div className="mt-8 flex justify-center gap-4">
-                  <Button
-                    onClick={shareGift}
-                    className="bg-rose-500 hover:bg-rose-600 text-white"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share Letter
-                  </Button>
-                  <Link href="/free-gifts">
-                    <Button variant="outline">Create Another</Button>
-                  </Link>
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <Button onClick={createLetter} className="w-full mt-6" disabled={!recipientName || !senderName || !content}>
+          <Sparkles className="w-4 h-4 mr-2" />
+          Seal the Letter
+        </Button>
       </div>
     </main>
   );

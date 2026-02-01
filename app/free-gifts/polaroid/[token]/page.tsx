@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Navigation } from "@/components/navigation";
 import { FloatingElements } from "@/components/floating-elements";
-import { Heart, RotateCcw, Share2 } from "lucide-react";
+import { Heart, RotateCcw, Share2, Copy } from "lucide-react";
 
 type GiftData = {
   gift_type: string;
@@ -33,8 +33,11 @@ export default function PublicPolaroidPage() {
 
   const imageSrc = gift
     ? `${process.env.NEXT_PUBLIC_API_URL}/${gift.gift_data.image_path}`
-    : null;
+    : "";
 
+  /* =======================
+     FETCH POLAROID
+  ======================= */
   useEffect(() => {
     if (!token) return;
 
@@ -65,20 +68,32 @@ export default function PublicPolaroidPage() {
     setTimeout(() => setIsShaking(false), 600);
   };
 
+  /* =======================
+     SHARE & COPY
+  ======================= */
   const handleShare = async () => {
+    const sender = gift?.sender_name ?? "Someone special";
+
     if (navigator.share) {
       await navigator.share({
         title: "Polaroid Memory",
-        text: "I made this for you 💖",
+        text: `A polaroid memory from ${sender} 💖`,
         url: shareUrl,
       });
     } else {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await handleCopy();
     }
   };
 
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  /* =======================
+     STATES
+  ======================= */
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center">
@@ -97,6 +112,9 @@ export default function PublicPolaroidPage() {
     );
   }
 
+  /* =======================
+     PAGE
+  ======================= */
   return (
     <main className="relative min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-background">
       <FloatingElements density="low" />
@@ -104,6 +122,7 @@ export default function PublicPolaroidPage() {
 
       <div className="pt-28 pb-20 px-4">
         <div className="max-w-2xl mx-auto space-y-10">
+          {/* HEADER */}
           <div className="text-center">
             <h1 className="text-2xl md:text-3xl font-light text-foreground mb-2">
               For{" "}
@@ -140,7 +159,7 @@ export default function PublicPolaroidPage() {
               >
                 <div className="w-64 h-64 md:w-80 md:h-80 overflow-hidden">
                   <img
-                    src={imageSrc!}
+                    src={imageSrc}
                     alt="Polaroid memory"
                     className="w-full h-full object-cover"
                   />
@@ -163,6 +182,7 @@ export default function PublicPolaroidPage() {
                   <p className="text-foreground text-lg leading-relaxed whitespace-pre-wrap">
                     {gift.gift_data.message || "You are loved."}
                   </p>
+
                   {gift.sender_name && (
                     <p className="mt-6 text-muted-foreground text-sm italic">
                       — {gift.sender_name}
@@ -173,6 +193,7 @@ export default function PublicPolaroidPage() {
             </motion.div>
           </div>
 
+          {/* SHAKE */}
           <div className="text-center">
             <button
               onClick={handleShake}
@@ -183,15 +204,25 @@ export default function PublicPolaroidPage() {
             </button>
           </div>
 
-          {/* SHARE */}
-          <div className="text-center space-y-3">
-            <button
-              onClick={handleShare}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition"
-            >
-              <Share2 className="w-4 h-4" />
-              Share this memory
-            </button>
+          {/* SHARE + COPY */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleShare}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition"
+              >
+                <Share2 className="w-4 h-4" />
+                Share this memory
+              </button>
+
+              <button
+                onClick={handleCopy}
+                className="p-3 rounded-full border border-border hover:bg-muted transition"
+                aria-label="Copy link"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+            </div>
 
             {copied && (
               <p className="text-xs text-muted-foreground">
@@ -201,28 +232,26 @@ export default function PublicPolaroidPage() {
           </div>
 
           {/* CTA */}
-{/* CTA — CREATE YOUR OWN */}
-<div className="mt-14 rounded-2xl bg-gradient-to-br from-rose-100 via-pink-100 to-background border border-border p-8 text-center space-y-4">
-  <h3 className="text-xl md:text-2xl font-light text-foreground">
-    Want to create one for someone you love?
-  </h3>
+          <div className="mt-14 rounded-2xl bg-gradient-to-br from-rose-100 via-pink-100 to-background border border-border p-8 text-center space-y-4">
+            <h3 className="text-xl md:text-2xl font-light text-foreground">
+              Want to create one for someone you love?
+            </h3>
 
-  <p className="text-muted-foreground max-w-md mx-auto">
-    Turn a photo and a few words into a memory they’ll never forget.
-  </p>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Turn a photo and a few words into a memory they’ll never forget.
+            </p>
 
-  <button
-    onClick={() => router.push("/free-gifts/polaroid")}
-    className="inline-flex items-center justify-center px-8 py-4 rounded-full bg-primary text-primary-foreground text-lg hover:bg-primary/90 transition shadow-md"
-  >
-    Create a Polaroid Memory
-  </button>
+            <button
+              onClick={() => router.push("/free-gifts/polaroid")}
+              className="inline-flex items-center justify-center px-8 py-4 rounded-full bg-primary text-primary-foreground text-lg hover:bg-primary/90 transition shadow-md"
+            >
+              Create a Polaroid Memory
+            </button>
 
-  <p className="text-xs text-muted-foreground">
-    It only takes a minute 💖
-  </p>
-</div>
-
+            <p className="text-xs text-muted-foreground">
+              It only takes a minute 💖
+            </p>
+          </div>
         </div>
       </div>
     </main>

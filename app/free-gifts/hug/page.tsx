@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, Share2 } from "lucide-react";
+import { Heart, Share2, Copy } from "lucide-react";
 import Image from "next/image";
 
 type Step = "create" | "preview" | "share";
@@ -27,6 +27,7 @@ export default function HugGiftPage() {
 
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   /* =======================
      CREATE (BACKEND)
@@ -86,6 +87,19 @@ export default function HugGiftPage() {
     setHugStyle(1);
     setHugCount(0);
     setShareToken(null);
+    setCopied(false);
+  };
+
+  /* =======================
+     COPY LINK (ADDED)
+  ======================= */
+  const handleCopy = async () => {
+    if (!shareToken) return;
+
+    const url = `${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/hug/${shareToken}`;
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -309,9 +323,26 @@ export default function HugGiftPage() {
                   Hug <span className="italic text-primary">Ready!</span>
                 </h2>
 
-                <p className="font-mono break-all text-sm bg-secondary p-3 rounded-lg">
-                  {`${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/hug/${shareToken}`}
-                </p>
+                {/* LINK + COPY (ADDED, NO REMOVALS) */}
+                <div className="flex items-center gap-3">
+                  <p className="flex-1 font-mono break-all text-sm bg-secondary p-3 rounded-lg">
+                    {`${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/hug/${shareToken}`}
+                  </p>
+
+                  <button
+                    onClick={handleCopy}
+                    className="p-3 rounded-full border border-border hover:bg-muted transition"
+                    aria-label="Copy link"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {copied && (
+                  <p className="text-xs text-muted-foreground">
+                    Link copied — paste it anywhere 🤍
+                  </p>
+                )}
 
                 <Button
                   onClick={handleReset}
@@ -322,6 +353,7 @@ export default function HugGiftPage() {
                 </Button>
               </motion.div>
             )}
+
           </AnimatePresence>
         </div>
       </div>

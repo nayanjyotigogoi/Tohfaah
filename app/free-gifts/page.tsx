@@ -180,7 +180,7 @@ export default function FreeGiftsPage() {
               map connections, and unforgettable proposals.
             </p>
             <Link
-              href="/create"
+              href="/coming-soon"
               className="inline-flex items-center gap-2 px-8 py-3 bg-white text-rose-950 rounded-full font-medium hover:bg-rose-50 transition-colors"
             >
               <Sparkles className="w-5 h-5" />

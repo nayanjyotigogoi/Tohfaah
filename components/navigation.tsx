@@ -17,8 +17,8 @@ import {
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/free-gifts", label: "Free Gifts" },
-  { href: "/create", label: "Create Experience", highlight: true },
-  { href: "/shop", label: "Shop" },
+  { href: "/coming-soon", label: "Create Experience", highlight: true },
+  { href: "/coming-soon", label: "Shop" },
   { href: "/about", label: "About" },
 ];
 

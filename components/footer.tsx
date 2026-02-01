@@ -7,8 +7,8 @@ import { Heart } from "lucide-react";
 const footerLinks = {
   experience: [
     { label: "Free Gifts", href: "/free-gifts" },
-    { label: "Premium Experiences", href: "/create" },
-    { label: "Shop", href: "/shop" },
+    { label: "Premium Experiences", href: "/coming-soon" },
+    { label: "Shop", href: "/coming-soon" },
   ],
   company: [
     { label: "About Us", href: "/about" },

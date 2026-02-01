@@ -12,10 +12,12 @@ import {
   Clock,
   Heart,
   Link as LinkIcon,
+  Copy,
   Check,
+  RotateCcw,
 } from "lucide-react";
 
-type Stage = "create" | "preview";
+type Stage = "create" | "preview" | "share";
 
 interface Memory {
   sender: string;
@@ -40,6 +42,22 @@ export default function SurprisePage() {
     date: "",
     time: "",
   });
+
+  /* ================= RESET ================= */
+
+  const resetAll = () => {
+    setStage("create");
+    setToken(null);
+    setCopied(false);
+    setMemory({
+      sender: "",
+      receiver: "",
+      title: "",
+      message: "",
+      date: "",
+      time: "",
+    });
+  };
 
   /* ================= CREATE → BACKEND ================= */
 
@@ -74,7 +92,7 @@ export default function SurprisePage() {
     setStage("preview");
   };
 
-  /* ================= COUNTDOWN (UNCHANGED DESIGN) ================= */
+  /* ================= COUNTDOWN ================= */
 
   const targetDate = useMemo(() => {
     if (!memory.date) return null;
@@ -117,6 +135,7 @@ export default function SurprisePage() {
       <div className="pt-28 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto">
           <AnimatePresence mode="wait">
+
             {/* ================= CREATE ================= */}
             {stage === "create" && (
               <motion.div
@@ -128,8 +147,7 @@ export default function SurprisePage() {
               >
                 <div className="text-center">
                   <h1 className="text-3xl md:text-4xl font-light mb-2">
-                    Create a{" "}
-                    <span className="italic text-primary">Moment</span>
+                    Create a <span className="italic text-primary">Moment</span>
                   </h1>
                   <p className="text-muted-foreground">
                     A day worth waiting for.
@@ -197,7 +215,7 @@ export default function SurprisePage() {
                   </div>
 
                   <Button
-                    className="w-full py-6 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
+                    className="w-full py-6 text-lg"
                     disabled={
                       !memory.sender ||
                       !memory.receiver ||
@@ -222,39 +240,19 @@ export default function SurprisePage() {
                 exit={{ opacity: 0, y: -20 }}
                 className="space-y-8"
               >
-                <div className="text-center">
-                  <h2 className="text-2xl md:text-3xl font-light mb-2">
-                    For{" "}
-                    <span className="italic text-primary">
-                      {memory.receiver}
-                    </span>
-                  </h2>
-                  <p className="text-muted-foreground">
-                    A moment that’s counting down
-                  </p>
-                </div>
-
                 <div className="bg-white rounded-[32px] p-10 shadow-2xl text-center">
                   <div className="grid grid-cols-4 gap-4 mb-8">
                     {Object.entries(time).map(([k, v]) => (
-                      <div
-                        key={k}
-                        className="bg-[#faf7f4] rounded-2xl py-5"
-                      >
-                        <AnimatePresence mode="wait">
-  <motion.div
-    key={String(v).padStart(2, "0")}
-    initial={{ rotateX: 90, opacity: 0 }}
-    animate={{ rotateX: 0, opacity: 1 }}
-    exit={{ rotateX: -90, opacity: 0 }}
-    transition={{ duration: 0.35, ease: "easeInOut" }}
-    className="text-4xl font-light font-mono tabular-nums"
-    style={{ transformOrigin: "center" }}
-  >
-    {String(v).padStart(2, "0")}
-  </motion.div>
-</AnimatePresence>
-
+                      <div key={k} className="bg-[#faf7f4] rounded-2xl py-5">
+                        <motion.div
+                          key={v}
+                          initial={{ rotateX: 90, opacity: 0 }}
+                          animate={{ rotateX: 0, opacity: 1 }}
+                          transition={{ duration: 0.35 }}
+                          className="text-4xl font-light font-mono tabular-nums"
+                        >
+                          {String(v).padStart(2, "0")}
+                        </motion.div>
                         <div className="text-[10px] tracking-widest mt-3 text-muted-foreground">
                           {k.toUpperCase()}
                         </div>
@@ -263,45 +261,70 @@ export default function SurprisePage() {
                   </div>
 
                   <Heart className="w-10 h-10 text-primary fill-primary mx-auto mb-4" />
-
-                  <h3 className="text-xl font-light mb-3">
-                    {memory.title}
-                  </h3>
+                  <h3 className="text-xl font-light mb-3">{memory.title}</h3>
                   <p className="text-muted-foreground mb-6">
                     {memory.message}
                   </p>
-                  <p className="text-sm text-primary">
-                    — {memory.sender}
-                  </p>
+                  <p className="text-sm text-primary">— {memory.sender}</p>
                 </div>
 
-                <div className="space-y-3">
-                  <Button
-                    onClick={copyLink}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="w-4 h-4 mr-2" /> Link Copied
-                      </>
-                    ) : (
-                      <>
-                        <LinkIcon className="w-4 h-4 mr-2" /> Copy Share Link
-                      </>
-                    )}
+                <div className="flex gap-4">
+                  <Button variant="outline" onClick={resetAll} className="flex-1">
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Start Over
                   </Button>
 
-                  <Button
-                    variant="ghost"
-                    className="w-full"
-                    onClick={() => setStage("create")}
-                  >
-                    Create Another Moment
+                  <Button onClick={() => setStage("share")} className="flex-1">
+                    <LinkIcon className="w-4 h-4 mr-2" />
+                    Share
                   </Button>
                 </div>
               </motion.div>
             )}
+
+            {/* ================= SHARE ================= */}
+            {stage === "share" && (
+              <motion.div
+                key="share"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-6 text-center"
+              >
+                <Heart className="w-14 h-14 mx-auto text-primary fill-primary" />
+
+                <p className="font-mono break-all text-sm bg-secondary p-3 rounded-lg">
+                  <a
+                    href={shareUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline"
+                  >
+                    {shareUrl}
+                  </a>
+                </p>
+
+                <button
+                  onClick={copyLink}
+                  className="flex items-center justify-center gap-2 text-sm text-primary mx-auto"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4" /> Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" /> Copy link
+                    </>
+                  )}
+                </button>
+
+                <Button variant="outline" onClick={resetAll}>
+                  Create Another Moment
+                </Button>
+              </motion.div>
+            )}
+
           </AnimatePresence>
         </div>
       </div>

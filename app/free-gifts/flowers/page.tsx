@@ -7,7 +7,7 @@ import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, Share2, Flower2 } from "lucide-react";
+import { Heart, Share2, Flower2, Copy } from "lucide-react";
 
 type Step = "create" | "preview" | "share";
 
@@ -29,6 +29,7 @@ export default function FlowersGiftPage() {
   const [selectedFlower, setSelectedFlower] = useState(flowers[0]);
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleCreate = async () => {
     if (!recipientName || !senderName) return;
@@ -73,6 +74,19 @@ export default function FlowersGiftPage() {
     setMessage("");
     setSelectedFlower(flowers[0]);
     setShareToken(null);
+    setCopied(false);
+  };
+
+  /* =======================
+     COPY LINK (ADDED)
+  ======================= */
+  const handleCopy = async () => {
+    if (!shareToken) return;
+
+    const url = `${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/flowers/${shareToken}`;
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -207,15 +221,32 @@ export default function FlowersGiftPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="space-y-8 text-center"
+                className="space-y-6 text-center"
               >
                 <h2 className="text-2xl font-light">
                   Bouquet <span className="italic text-primary">Ready!</span>
                 </h2>
 
-                <div className="p-4 bg-secondary rounded-xl font-mono text-sm">
-                  {`${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/flowers/${shareToken}`}
+                {/* LINK + COPY (ADDED) */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 p-4 bg-secondary rounded-xl font-mono text-sm break-all">
+                    {`${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/flowers/${shareToken}`}
+                  </div>
+
+                  <button
+                    onClick={handleCopy}
+                    className="p-3 rounded-full border border-border hover:bg-muted transition"
+                    aria-label="Copy link"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
                 </div>
+
+                {copied && (
+                  <p className="text-xs text-muted-foreground">
+                    Link copied — paste it anywhere 🌸
+                  </p>
+                )}
 
                 <Button onClick={handleReset} variant="outline">
                   Create Another

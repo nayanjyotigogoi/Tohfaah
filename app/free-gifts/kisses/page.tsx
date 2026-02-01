@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, Share2, RotateCcw } from "lucide-react";
+import { Heart, Share2, Copy, Check, RotateCcw } from "lucide-react";
 
 interface Kiss {
   x: number;
@@ -30,6 +30,22 @@ export default function KissesGiftPage() {
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+  if (!shareToken) return;
+
+  const url = `${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/kisses/${shareToken}`;
+
+  try {
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  } catch (err) {
+    console.error("Copy failed", err);
+    }
+  };
+
   /* =======================
      ADD KISS (CANVAS)
   ======================= */
@@ -50,6 +66,7 @@ export default function KissesGiftPage() {
     setKisses((prev) => [...prev, newKiss]);
   };
 
+  
   /* =======================
      CREATE (BACKEND)
   ======================= */
@@ -294,19 +311,50 @@ export default function KissesGiftPage() {
                 className="space-y-8 text-center"
               >
                 <Heart className="w-16 h-16 mx-auto text-primary fill-primary" />
+
                 <h2 className="text-2xl font-light">
                   Kisses <span className="italic text-primary">Sent!</span>
                 </h2>
 
-                <p className="font-mono break-all text-sm bg-secondary p-3 rounded-lg">
-                  {`${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/kisses/${shareToken}`}
-                </p>
+                <div className="space-y-3">
+                  <p className="font-mono break-all text-sm bg-secondary p-3 rounded-lg">
+                    {`${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/kisses/${shareToken}`}
+                  </p>
+
+                  {/* COPY BUTTON */}
+                  <div className="flex justify-center">
+                    <button
+                      onClick={handleCopy}
+                      aria-label="Copy link"
+                      className="flex items-center gap-2 text-sm text-primary hover:text-primary/80"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="w-4 h-4 text-green-600" />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4" />
+                            Copy link
+                          </>
+                        )}
+                    </button>
+                  </div>
+
+                    {copied && (
+                      <p className="text-xs text-muted-foreground">
+                        Link copied — paste it anywhere 💖
+                      </p>
+                    )}
+                </div>
 
                 <Button variant="outline" onClick={handleReset}>
                   Create Another
                 </Button>
               </motion.div>
             )}
+
           </AnimatePresence>
         </div>
       </div>

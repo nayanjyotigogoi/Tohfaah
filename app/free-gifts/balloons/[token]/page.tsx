@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
-import { Heart, Share2, PartyPopper } from "lucide-react";
+import { Heart, Share2, Copy, Check } from "lucide-react";
 
 interface Balloon {
   id: number;
@@ -40,6 +40,10 @@ export default function PublicBalloonsPage() {
   const [sender, setSender] = useState("");
   const [balloons, setBalloons] = useState<Balloon[]>([]);
   const [activeMessage, setActiveMessage] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const shareUrl =
+    typeof window !== "undefined" ? window.location.href : "";
 
   /* 🔊 POP SOUND */
   const popSound = useRef<HTMLAudioElement | null>(null);
@@ -59,11 +63,9 @@ export default function PublicBalloonsPage() {
           `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts/${token}`,
           { cache: "no-store" }
         );
-
         if (!res.ok) throw new Error();
 
         const data = await res.json();
-
         if (data.gift_type !== "balloons") throw new Error();
 
         setRecipient(data.recipient_name);
@@ -106,6 +108,25 @@ export default function PublicBalloonsPage() {
     }
   };
 
+  /* ================= SHARE ================= */
+  const handleShare = async () => {
+    if (navigator.share) {
+      await navigator.share({
+        title: "Balloon surprise 🎈",
+        text: "Someone sent you a balloon pop surprise!",
+        url: shareUrl,
+      });
+    } else {
+      await handleCopy();
+    }
+  };
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center">
@@ -126,7 +147,6 @@ export default function PublicBalloonsPage() {
 
   const allPopped = balloons.every((b) => b.popped);
 
-  /* ================= UI ================= */
   return (
     <main className="relative min-h-screen bg-gradient-to-b from-sky-400 via-sky-300 to-pink-200 overflow-hidden">
       <Navigation />
@@ -161,30 +181,12 @@ export default function PublicBalloonsPage() {
                 }}
                 onClick={() => popBalloon(balloon.id)}
               >
-                {/* 🎈 ORIGINAL BALLOON (UNCHANGED) */}
-                <div className="relative">
-                  <div
-                    className={`w-20 h-24 rounded-full bg-gradient-to-b ${balloon.color.bg} ${balloon.color.shadow}`}
-                    style={{
-                      borderRadius: "50% 50% 50% 50% / 40% 40% 60% 60%",
-                    }}
-                  >
-                    <div className="absolute top-4 left-4 w-4 h-6 bg-white/40 rounded-full rotate-[-30deg]" />
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[10px] border-transparent border-t-current text-rose-600" />
-                  </div>
-                  <svg
-                    className="absolute -bottom-16 left-1/2 -translate-x-1/2"
-                    width="20"
-                    height="60"
-                  >
-                    <path
-                      d="M10 0 Q5 20 10 30 Q15 40 10 60"
-                      stroke="#888"
-                      strokeWidth="1.5"
-                      fill="none"
-                    />
-                  </svg>
-                </div>
+                <div
+                  className={`w-20 h-24 rounded-full bg-gradient-to-b ${balloon.color.bg} ${balloon.color.shadow}`}
+                  style={{
+                    borderRadius: "50% 50% 50% 50% / 40% 40% 60% 60%",
+                  }}
+                />
               </motion.button>
             )
         )}
@@ -204,32 +206,73 @@ export default function PublicBalloonsPage() {
         )}
       </AnimatePresence>
 
-      {/* FINAL */}
+      {/* ================= AFTER EXPERIENCE (MATCHES REMINDER) ================= */}
       {allPopped && (
-        <div className="fixed bottom-6 w-full text-center z-20 space-y-3">
-          <p className="italic text-lg">With love, {sender} 💖</p>
+        <div className="relative z-20 pt-24 pb-20 px-4">
+          <div className="max-w-2xl mx-auto space-y-10">
 
-          <Button
-            onClick={() => {
-              if (navigator.share) {
-                navigator.share({
-                  title: "Balloon Surprise",
-                  text: "Someone sent you balloons 🎈",
-                  url: window.location.href,
-                });
-              }
-            }}
-          >
-            <Share2 className="w-4 h-4 mr-2" />
-            Share
-          </Button>
+            {/* SIGN OFF */}
+            <p className="text-center italic text-lg">
+              With love, {sender} 💖
+            </p>
 
-          <Button
-            variant="outline"
-            onClick={() => router.push("/free-gifts")}
-          >
-            Create Your Own
-          </Button>
+            {/* SHARE + COPY */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleShare}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition"
+                >
+                  <Share2 className="w-4 h-4" />
+                  Share this Balloon
+                </button>
+
+                <button
+                  onClick={handleCopy}
+                  className="p-3 rounded-full border border-border hover:bg-muted transition"
+                  aria-label="Copy link"
+                >
+                  {copied ? (
+                    <Check className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+
+              {copied && (
+                <p className="text-xs text-muted-foreground">
+                  Link copied — share it anywhere 🎈
+                </p>
+              )}
+            </div>
+
+            {/* CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-14 rounded-2xl bg-gradient-to-br from-rose-100 via-pink-100 to-background border p-8 text-center space-y-4"
+            >
+              <h3 className="text-xl md:text-2xl font-light">
+                Want to create balloons like this?
+              </h3>
+              <p className="text-muted-foreground">
+                Add messages, pop balloons, and spread joy 🎈
+              </p>
+              <button
+                onClick={() => router.push("/free-gifts/balloons")}
+                className="px-8 py-4 rounded-full bg-primary text-primary-foreground text-lg shadow-md"
+              >
+                Create Your Own Balloons
+              </button>
+              <p className="text-xs text-muted-foreground">
+                No signup required 💗
+              </p>
+            </motion.div>
+
+          </div>
         </div>
       )}
     </main>

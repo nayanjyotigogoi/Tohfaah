@@ -15,11 +15,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/free-gifts", label: "Free Gifts" },
-  { href: "/coming-soon", label: "Create Experience", highlight: true },
-  { href: "/coming-soon", label: "Shop" },
-  { href: "/about", label: "About" },
+  { id: "home", href: "/", label: "Home" },
+  { id: "free-gifts", href: "/free-gifts", label: "Free Gifts" },
+  { id: "create-experience", href: "/coming-soon", label: "Create Experience" },
+  { id: "shop", href: "/coming-soon", label: "Shop" },
+  { id: "about", href: "/about", label: "About" },
 ];
 
 export function Navigation() {
@@ -133,10 +133,10 @@ export function Navigation() {
 
               return (
                 <Link
-                  key={link.href}
+                  key={link.id}
                   href={link.href}
                   className={`relative text-lg font-medium transition-colors ${
-                    link.highlight
+                    isActive
                       ? "text-primary"
                       : "text-muted-foreground hover:text-primary"
                   }`}
@@ -227,7 +227,7 @@ export function Navigation() {
             <div className="px-6 py-6 space-y-4">
               {navLinks.map((link) => (
                 <Link
-                  key={link.href}
+                  key={link.id}
                   href={link.href}
                   onClick={() => setIsOpen(false)}
                   className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-2"

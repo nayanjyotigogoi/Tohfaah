@@ -13,6 +13,8 @@ import {
   Copy,
   ShoppingBag,
   FileText,
+  Trash,
+  Play,
 } from "lucide-react";
 
 type Tab = "overview" | "free" | "paid" | "drafts" | "orders" | "settings";
@@ -30,59 +32,62 @@ export default function DashboardPage() {
   });
 
   const [freeGifts, setFreeGifts] = useState<any[]>([]);
-  const [premiumGifts, setPremiumGifts] = useState<any[]>([]);
+  const [paidPremium, setPaidPremium] = useState<any[]>([]);
+  const [draftPremium, setDraftPremium] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
-useEffect(() => {
-  const loadDashboard = async () => {
-    try {
-      console.log("DASHBOARD[FE]: Fetching dashboard…");
+  /* =========================================================
+     LOAD DASHBOARD
+  ========================================================= */
+  useEffect(() => {
+    const loadDashboard = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/dashboard-data`,
+          {
+            credentials: "include",
+            headers: { Accept: "application/json" },
+          }
+        );
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/dashboard-data`,
-        {
-          credentials: "include",
-          headers: {
-            Accept: "application/json",
-          },
-        }
-      );
+        if (!res.ok) throw new Error("Failed to load dashboard");
 
-      console.log("DASHBOARD[FE]: Response status", res.status);
+        const data = await res.json();
 
-      if (!res.ok) {
-        const text = await res.text();
-        console.error("DASHBOARD[FE]: Failed response body", text);
-        throw new Error("Failed to load dashboard");
+        setStats(data.stats);
+        setFreeGifts(data.free || []);
+        setPaidPremium(data.paid || []);
+        setDraftPremium(data.drafts || []);
+        setOrders(data.orders || []);
+        setRecentActivity(data.recent_activity || []);
+      } catch (err) {
+        console.error("DASHBOARD[FE]: Error", err);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const data = await res.json();
-
-      console.log("DASHBOARD[FE]: Data received", data);
-
-      // ✅ MANDATORY STATE UPDATES
-      setStats(data.stats);
-      setFreeGifts(data.free || []);
-      setPremiumGifts([...(data.paid || []), ...(data.drafts || [])]);
-      setOrders(data.orders || []);
-      setRecentActivity(data.recent_activity || []);
-    } catch (err) {
-      console.error("DASHBOARD[FE]: Error", err);
-    } finally {
-      // ✅ VERY IMPORTANT
-      setLoading(false);
-    }
-  };
-
-  loadDashboard();
-}, []);
+    loadDashboard();
+  }, []);
 
   const copyLink = (link: string) => {
-    navigator.clipboard.writeText(`https://${link}`);
+    navigator.clipboard.writeText(link);
     setCopiedLink(link);
     setTimeout(() => setCopiedLink(null), 2000);
   };
+
+  const playLink = (link: string) => {
+    window.open(link, "_blank");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Heart className="w-8 h-8 animate-pulse text-primary" />
+      </div>
+    );
+  }
 
   const tabs = [
     { id: "overview", label: "Overview", icon: Heart },
@@ -92,17 +97,6 @@ useEffect(() => {
     { id: "orders", label: "Shop Orders", icon: ShoppingBag },
     { id: "settings", label: "Settings", icon: Settings },
   ] as const;
-
-  const livePremium = premiumGifts.filter((g) => g.status === "live");
-  const draftPremium = premiumGifts.filter((g) => g.status === "draft");
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Heart className="w-8 h-8 animate-pulse text-primary" />
-      </div>
-    );
-  }
 
   return (
     <main className="relative min-h-screen bg-background">
@@ -141,7 +135,7 @@ useEffect(() => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
                   activeTab === tab.id
                     ? "bg-primary text-primary-foreground"
                     : "bg-secondary text-muted-foreground hover:text-foreground"
@@ -181,6 +175,14 @@ useEffect(() => {
                           gift={item}
                           onCopy={copyLink}
                           copied={copiedLink}
+                          onPlay={() =>
+                            item.status === "draft"
+                              ? window.open(
+                                  `/gift/valentine/${item.id}?preview=1`,
+                                  "_blank"
+                                )
+                              : playLink(item.link)
+                          }
                         />
                       ))
                     )}
@@ -206,13 +208,14 @@ useEffect(() => {
                     gift={gift}
                     onCopyLink={copyLink}
                     copiedLink={copiedLink}
+                    onPlay={() => playLink(gift.link)}
                   />
                 ))
               ))}
 
             {/* PAID */}
             {activeTab === "paid" &&
-              (livePremium.length === 0 ? (
+              (paidPremium.length === 0 ? (
                 <EmptyState
                   icon={Sparkles}
                   title="No premium gifts yet"
@@ -221,12 +224,13 @@ useEffect(() => {
                   actionHref="/coming-soon"
                 />
               ) : (
-                livePremium.map((gift) => (
+                paidPremium.map((gift) => (
                   <GiftCard
                     key={gift.id}
                     gift={gift}
                     onCopyLink={copyLink}
                     copiedLink={copiedLink}
+                    onPlay={() => playLink(gift.link)}
                   />
                 ))
               ))}
@@ -243,7 +247,15 @@ useEffect(() => {
                 />
               ) : (
                 draftPremium.map((gift) => (
-                  <DraftCard key={gift.id} gift={gift} />
+                  <DraftCard
+                    key={gift.id}
+                    gift={gift}
+                    onDeleted={() =>
+                      setDraftPremium((prev) =>
+                        prev.filter((d) => d.id !== gift.id)
+                      )
+                    }
+                  />
                 ))
               ))}
 
@@ -272,7 +284,7 @@ useEffect(() => {
   );
 }
 
-/* ---------- UI COMPONENTS (UNCHANGED) ---------- */
+/* ================= COMPONENTS ================= */
 
 function StatCard({ icon: Icon, label, value }: any) {
   return (
@@ -299,7 +311,7 @@ function EmptyState({ icon: Icon, title, description, actionLabel, actionHref }:
   );
 }
 
-function GiftRow({ gift, onCopy, copied }: any) {
+function GiftRow({ gift, onCopy, copied, onPlay }: any) {
   return (
     <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-xl">
       <div>
@@ -308,16 +320,21 @@ function GiftRow({ gift, onCopy, copied }: any) {
         </p>
         <p className="text-sm text-muted-foreground">{gift.date}</p>
       </div>
-      {gift.link && (
-        <Button size="sm" variant="ghost" onClick={() => onCopy(gift.link)}>
-          {copied === gift.link ? "Copied!" : <><Copy className="w-4 h-4 mr-1" /> Copy</>}
+      <div className="flex gap-2">
+        <Button size="sm" variant="ghost" onClick={onPlay}>
+          <Play className="w-4 h-4" />
         </Button>
-      )}
+        {gift.link && (
+          <Button size="sm" variant="ghost" onClick={() => onCopy(gift.link)}>
+            {copied === gift.link ? "Copied!" : <Copy className="w-4 h-4" />}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
 
-function GiftCard({ gift, onCopyLink, copiedLink }: any) {
+function GiftCard({ gift, onCopyLink, copiedLink, onPlay }: any) {
   return (
     <div className="flex items-center justify-between p-6 bg-card border border-border rounded-2xl">
       <div>
@@ -326,20 +343,56 @@ function GiftCard({ gift, onCopyLink, copiedLink }: any) {
         </p>
         <p className="text-sm text-muted-foreground">{gift.date}</p>
       </div>
-      {gift.link && (
-        <Button size="sm" variant="ghost" onClick={() => onCopyLink(gift.link)}>
-          {copiedLink === gift.link ? "Copied!" : "Copy"}
+      <div className="flex gap-2">
+        <Button size="sm" variant="ghost" onClick={onPlay}>
+          <Play className="w-4 h-4" />
         </Button>
-      )}
+        {gift.link && (
+          <Button size="sm" variant="ghost" onClick={() => onCopyLink(gift.link)}>
+            {copiedLink === gift.link ? "Copied!" : <Copy className="w-4 h-4" />}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
 
-function DraftCard({ gift }: any) {
+function DraftCard({ gift, onDeleted }: any) {
+  const continueDraft = () => {
+    localStorage.setItem("resume_premium_draft_id", gift.id);
+    window.location.href = "/create";
+  };
+
+  const playDraft = () => {
+    window.open(`/gift/valentine/${gift.id}?preview=1`, "_blank");
+  };
+
+  const deleteDraft = async () => {
+    await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/premium-gifts/${gift.id}`,
+      { method: "DELETE", credentials: "include" }
+    );
+    onDeleted();
+  };
+
   return (
     <div className="flex items-center justify-between p-6 bg-card border border-border rounded-2xl">
-      <p className="font-medium">Draft for {gift.recipient}</p>
-      <Button>Continue</Button>
+      <div>
+        <p className="font-medium">Draft for {gift.recipient}</p>
+        <p className="text-sm text-muted-foreground">
+          Last updated {gift.updated_at ?? "recently"}
+        </p>
+      </div>
+
+      <div className="flex gap-2">
+        <Button variant="ghost" onClick={playDraft}>
+          <Play className="w-4 h-4" />
+        </Button>
+        <Button onClick={continueDraft}>Continue</Button>
+        <Button variant="destructive" onClick={deleteDraft}>
+          <Trash className="w-4 h-4" />
+        </Button>
+      </div>
     </div>
   );
 }

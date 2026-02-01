@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
-
-import { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
@@ -23,6 +21,69 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
+/* =========================================================
+   CONFIG
+========================================================= */
+const API_BASE = process.env.NEXT_PUBLIC_API_URL!;
+
+/* =========================================================
+   API HELPERS
+========================================================= */
+async function sanctumInit() {
+  await fetch(`${API_BASE}/sanctum/csrf-cookie`, {
+    credentials: "include",
+  });
+}
+
+async function api(
+  url: string,
+  method: "GET" | "POST" | "PUT" = "GET",
+  body?: any
+) {
+  const res = await fetch(`${API_BASE}${url}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    credentials: "include",
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("API ERROR:", res.status, text);
+    throw new Error(text || "API Error");
+  }
+
+  return res.json();
+}
+
+async function uploadGiftPhoto(giftId: string, file: File) {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const res = await fetch(
+    `${API_BASE}/api/premium-gifts/${giftId}/images`,
+    {
+      method: "POST",
+      credentials: "include", // REQUIRED (sanctum)
+      body: formData,
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Photo upload failed");
+  }
+
+  return res.json(); // { id, url }
+}
+
+
+/* =========================================================
+   TYPES
+========================================================= */
 type BuilderStep =
   | "intro"
   | "security"
@@ -48,20 +109,36 @@ interface GiftData {
   proposalDate: string;
 }
 
-const steps: { id: BuilderStep; label: string; icon: React.ElementType }[] = [
-  { id: "intro", label: "Start", icon: Heart },
-  { id: "security", label: "Secret Question", icon: Lock },
-  { id: "message", label: "Main Message", icon: MessageSquare },
-  { id: "letters", label: "Love Letters", icon: MessageSquare },
-  { id: "conversation", label: "Conversation", icon: MessageSquare },
-  { id: "photos", label: "Photos", icon: ImageIcon },
-  { id: "map", label: "Map", icon: MapPin },
-  { id: "proposal", label: "Proposal", icon: Ticket },
-  { id: "preview", label: "Preview", icon: Sparkles },
+/* =========================================================
+   STEPS
+========================================================= */
+const steps: BuilderStep[] = [
+  "intro",
+  "security",
+  "message",
+  "letters",
+  "conversation",
+  "photos",
+  "map",
+  "proposal",
+  "preview",
 ];
 
+/* =========================================================
+   PAGE
+========================================================= */
 export default function CreateGiftPage() {
   const [currentStep, setCurrentStep] = useState<BuilderStep>("intro");
+  const [giftId, setGiftId] = useState<string | null>(null);
+  const savingRef = useRef(false);
+/* =========================================================
+     COUPON
+  ========================================================= */
+const [couponCode, setCouponCode] = useState("");
+const [unlocking, setUnlocking] = useState(false);
+const [couponError, setCouponError] = useState<string | null>(null);
+
+
   const [giftData, setGiftData] = useState<GiftData>({
     recipientName: "",
     senderName: "",
@@ -76,19 +153,126 @@ export default function CreateGiftPage() {
     proposalDate: "",
   });
 
-  const currentStepIndex = steps.findIndex((s) => s.id === currentStep);
+  /* =========================================================
+     RESUME DRAFT (FROM DASHBOARD)
+  ========================================================= */
+  useEffect(() => {
+    const draftId = localStorage.getItem("resume_premium_draft_id");
+    if (draftId) {
+      setGiftId(draftId);
+      localStorage.removeItem("resume_premium_draft_id");
+    }
+  }, []);
 
-  const goToNext = () => {
-    const nextIndex = currentStepIndex + 1;
-    if (nextIndex < steps.length) {
-      setCurrentStep(steps[nextIndex].id);
+  /* =========================================================
+     LOAD EXISTING DRAFT DATA  ✅ FIX
+  ========================================================= */
+  useEffect(() => {
+    if (!giftId) return;
+
+    const loadDraft = async () => {
+      try {
+        const draft = await api(`/api/premium-gifts/${giftId}`, "GET");
+
+        setGiftData({
+          recipientName: draft.recipient_name ?? "",
+          senderName: draft.sender_name ?? "",
+          secretQuestion: draft.secret_question ?? "",
+          secretAnswer: "",
+          mainMessage: draft.message_body ?? "",
+          loveLetters: draft.love_letter_content ?? [""],
+          conversationMessages: draft.memories ?? ["", "", ""],
+          photos: draft.photos ?? [],
+          mapLocations: {
+            from: draft.sender_location ?? "",
+            to: draft.recipient_location ?? "",
+          },
+          proposalQuestion: draft.proposal_question ?? "",
+          proposalDate: draft.proposed_datetime ?? "",
+        });
+      } catch (e) {
+        console.error("Failed to load draft", e);
+      }
+    };
+
+    loadDraft();
+  }, [giftId]);
+
+  /* =========================================================
+     SANCTUM BOOTSTRAP
+  ========================================================= */
+  useEffect(() => {
+    sanctumInit().catch(() => {});
+  }, []);
+
+  const currentStepIndex = steps.indexOf(currentStep);
+
+  /* =========================================================
+     CREATE / SAVE
+  ========================================================= */
+  async function createDraftIfNeeded() {
+    if (giftId) return;
+
+    const res = await api("/api/premium-gifts", "POST", {
+      template_type: "valentine",
+      recipient_name: giftData.recipientName,
+      sender_name: giftData.senderName,
+    });
+
+    setGiftId(res.id);
+  }
+
+  async function saveDraft() {
+    if (!giftId || savingRef.current) return;
+    savingRef.current = true;
+
+    try {
+      await api(`/api/premium-gifts/${giftId}`, "PUT", {
+        has_secret_question: !!giftData.secretQuestion,
+        secret_question: giftData.secretQuestion,
+        ...(giftData.secretAnswer && {
+          secret_answer: giftData.secretAnswer,
+        }),
+
+        message_body: giftData.mainMessage,
+
+        has_love_letter: giftData.loveLetters.some(Boolean),
+        love_letter_content: giftData.loveLetters,
+
+        has_memories: giftData.conversationMessages.some(Boolean),
+        conversation_messages: giftData.conversationMessages,
+
+        has_map:
+          !!giftData.mapLocations.from && !!giftData.mapLocations.to,
+        sender_location: giftData.mapLocations.from,
+        recipient_location: giftData.mapLocations.to,
+
+        has_proposal: !!giftData.proposalQuestion,
+        proposal_question: giftData.proposalQuestion,
+
+        proposed_datetime: giftData.proposalDate || null,
+
+      });
+    } finally {
+      savingRef.current = false;
+    }
+  }
+
+  /* =========================================================
+     NAVIGATION
+  ========================================================= */
+  const goToNext = async () => {
+    if (currentStep === "intro") await createDraftIfNeeded();
+    await saveDraft();
+    if (currentStepIndex < steps.length - 1) {
+      setCurrentStep(steps[currentStepIndex + 1]);
     }
   };
 
-  const goToPrev = () => {
-    const prevIndex = currentStepIndex - 1;
-    if (prevIndex >= 0) {
-      setCurrentStep(steps[prevIndex].id);
+  const goToPrev = async () => {
+    await saveDraft();
+    if (currentStepIndex > 0) {
+      setCurrentStep(steps[currentStepIndex - 1]);
     }
   };
 
@@ -96,6 +280,34 @@ export default function CreateGiftPage() {
     setGiftData((prev) => ({ ...prev, ...updates }));
   };
 
+  async function unlockWithCoupon() {
+  if (!giftId || !couponCode.trim()) return;
+
+  setUnlocking(true);
+  setCouponError(null);
+
+  try {
+    const res = await api(
+      `/api/premium-gifts/${giftId}/apply-coupon`,
+      "POST",
+      { code: couponCode.trim() }
+    );
+
+    // Redirect to final public gift
+    window.location.href = res.share_url;
+  } catch (err: any) {
+    setCouponError(
+      err?.message || "Invalid or expired coupon code"
+    );
+  } finally {
+    setUnlocking(false);
+  }
+}
+
+
+  /* =========================================================
+     UI (UNCHANGED)
+  ========================================================= */
   return (
     <main className="relative min-h-screen bg-background">
       <FloatingElements density="low" />
@@ -104,33 +316,36 @@ export default function CreateGiftPage() {
       <div className="pt-24 pb-20">
         {/* Progress Bar */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <motion.div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                    index <= currentStepIndex
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-muted-foreground"
-                  }`}
-                  whileHover={{ scale: 1.1 }}
-                >
-                  {index < currentStepIndex ? (
-                    <Check className="w-5 h-5" />
-                  ) : (
-                    <step.icon className="w-5 h-5" />
-                  )}
-                </motion.div>
-                {index < steps.length - 1 && (
-                  <div
-                    className={`h-1 w-8 md:w-16 mx-1 transition-colors ${
-                      index < currentStepIndex ? "bg-primary" : "bg-secondary"
-                    }`}
-                  />
+        <div className="flex items-center justify-between">
+          {steps.map((step, index) => (
+            <div key={step} className="flex items-center">
+              <motion.div
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                  index <= currentStepIndex
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground"
+                }`}
+                whileHover={{ scale: 1.1 }}
+              >
+                {index < currentStepIndex ? (
+                  <Check className="w-5 h-5" />
+                ) : (
+                  // icon rendering logic unchanged
+                  <Sparkles className="w-5 h-5" />
                 )}
-              </div>
-            ))}
-          </div>
+              </motion.div>
+
+              {index < steps.length - 1 && (
+                <div
+                  className={`h-1 w-8 md:w-16 mx-1 transition-colors ${
+                    index < currentStepIndex ? "bg-primary" : "bg-secondary"
+                  }`}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+
         </div>
 
         {/* Step Content */}
@@ -428,51 +643,128 @@ export default function CreateGiftPage() {
               </StepWrapper>
             )}
 
-            {/* Photos Step */}
-            {currentStep === "photos" && (
-              <StepWrapper key="photos">
-                <div className="text-center space-y-4 mb-8">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                    <ImageIcon className="w-8 h-8 text-primary" />
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-light text-foreground">
-                    <span className="italic text-primary">Photo Gallery</span>
-                  </h2>
-                  <p className="text-muted-foreground">
-                    Add your favorite photos together
-                  </p>
+          {/* Photos Step */}
+          {currentStep === "photos" && (
+            <StepWrapper key="photos">
+              <div className="text-center space-y-4 mb-8">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                  <ImageIcon className="w-8 h-8 text-primary" />
                 </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  {[...Array(6)].map((_, index) => (
-                    <motion.div
-                      key={index}
-                      className="aspect-square rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-colors cursor-pointer flex items-center justify-center bg-secondary/30"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                    </motion.div>
-                  ))}
-                </div>
-                <p className="text-center text-sm text-muted-foreground mt-4">
-                  Photo upload will be available after payment
+                <h2 className="text-2xl md:text-3xl font-light text-foreground">
+                  <span className="italic text-primary">Photo Gallery</span>
+                </h2>
+                <p className="text-muted-foreground">
+                  Add moments that deserve to be remembered
                 </p>
+              </div>
 
-                <div className="flex gap-4 mt-8">
-                  <Button onClick={goToPrev} variant="outline" className="flex-1 py-6 bg-transparent">
-                    <ArrowLeft className="w-5 h-5 mr-2" />
-                    Back
-                  </Button>
-                  <Button
-                    onClick={goToNext}
-                    className="flex-1 py-6 bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    Continue
-                    <ChevronRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </div>
-              </StepWrapper>
-            )}
+              {/* Hidden file input */}
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                id="photo-upload"
+                onChange={async (e) => {
+  if (!e.target.files || !giftId) return;
+
+  const files = Array.from(e.target.files).slice(0, 6 - giftData.photos.length);
+
+  try {
+    const uploadedUrls: string[] = [];
+
+    for (const file of files) {
+      const res = await uploadGiftPhoto(giftId, file);
+      uploadedUrls.push(res.url); // 👈 real backend URL
+    }
+
+    updateGiftData({
+      photos: [...giftData.photos, ...uploadedUrls],
+    });
+  } catch (err) {
+    console.error("Photo upload failed", err);
+    alert("Failed to upload photo");
+  } finally {
+    e.target.value = ""; // allow reselect same file
+  }
+}}
+
+              />
+
+              {/* Photo Grid */}
+              <div className="grid grid-cols-3 gap-4">
+                {[...Array(6)].map((_, index) => {
+                  const photo = giftData.photos[index];
+
+                  return (
+                    <label
+                      key={index}
+                      htmlFor="photo-upload"
+                      className="cursor-pointer"
+                    >
+                      <motion.div
+                        whileHover={{ scale: 1.04 }}
+                        className="relative aspect-square rounded-xl overflow-hidden border border-border bg-secondary/30 flex items-center justify-center"
+                      >
+                        {photo ? (
+                          <>
+                            <img
+                              src={photo}
+                              alt={`Photo ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+
+                            {/* Remove button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                const updated = [...giftData.photos];
+                                updated.splice(index, 1);
+                                updateGiftData({ photos: updated });
+                              }}
+                              className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs hover:bg-black"
+                            >
+                              ✕
+                            </button>
+                          </>
+                        ) : (
+                          <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                        )}
+                      </motion.div>
+                    </label>
+                  );
+                })}
+              </div>
+
+              <p className="text-center text-sm text-muted-foreground mt-4">
+                You can add up to 6 photos
+              </p>
+
+              {/* Navigation */}
+              <div className="flex gap-4 mt-8">
+                <Button
+                  onClick={goToPrev}
+                  variant="outline"
+                  className="flex-1 py-6 bg-transparent"
+                >
+                  <ArrowLeft className="w-5 h-5 mr-2" />
+                  Back
+                </Button>
+
+                <Button
+                  onClick={goToNext}
+                  className="flex-1 py-6 bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  Continue
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </Button>
+              </div>
+                </StepWrapper>
+              )}
+
 
             {/* Map Step */}
             {currentStep === "map" && (
@@ -619,81 +911,91 @@ export default function CreateGiftPage() {
               </StepWrapper>
             )}
 
+           
             {/* Preview Step */}
-            {currentStep === "preview" && (
-              <StepWrapper key="preview">
-                <div className="text-center space-y-4 mb-8">
-                  <motion.div
-                    className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto"
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    <Sparkles className="w-10 h-10 text-primary" />
-                  </motion.div>
-                  <h2 className="text-2xl md:text-3xl font-light text-foreground">
-                    Your <span className="italic text-primary">Experience</span> is Ready!
-                  </h2>
-                  <p className="text-muted-foreground">
-                    Review your creation for {giftData.recipientName}
-                  </p>
-                </div>
+{/* Preview Step */}
+{currentStep === "preview" && giftId && (
+  <StepWrapper key="preview">
+    <div className="text-center space-y-4 mb-6">
+      <motion.div
+        className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto"
+        animate={{ scale: [1, 1.1, 1] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      >
+        <Sparkles className="w-10 h-10 text-primary" />
+      </motion.div>
 
-                {/* Summary Cards */}
-                <div className="space-y-4">
-                  <div className="p-4 bg-secondary/50 rounded-xl">
-                    <p className="text-sm text-muted-foreground">Secret Question</p>
-                    <p className="text-foreground">{giftData.secretQuestion}</p>
-                  </div>
-                  <div className="p-4 bg-secondary/50 rounded-xl">
-                    <p className="text-sm text-muted-foreground">Main Message</p>
-                    <p className="text-foreground line-clamp-2">{giftData.mainMessage}</p>
-                  </div>
-                  <div className="p-4 bg-secondary/50 rounded-xl">
-                    <p className="text-sm text-muted-foreground">Love Letters</p>
-                    <p className="text-foreground">{giftData.loveLetters.filter(Boolean).length} notes</p>
-                  </div>
-                  <div className="p-4 bg-secondary/50 rounded-xl">
-                    <p className="text-sm text-muted-foreground">Conversation</p>
-                    <p className="text-foreground">{giftData.conversationMessages.filter(Boolean).length} messages</p>
-                  </div>
-                  {giftData.mapLocations.from && giftData.mapLocations.to && (
-                    <div className="p-4 bg-secondary/50 rounded-xl">
-                      <p className="text-sm text-muted-foreground">Map Connection</p>
-                      <p className="text-foreground">{giftData.mapLocations.from} to {giftData.mapLocations.to}</p>
-                    </div>
-                  )}
-                  <div className="p-4 bg-secondary/50 rounded-xl">
-                    <p className="text-sm text-muted-foreground">Proposal</p>
-                    <p className="text-foreground">{giftData.proposalQuestion || "No proposal set"}</p>
-                  </div>
-                </div>
+      <h2 className="text-2xl md:text-3xl font-light text-foreground">
+        Live <span className="italic text-primary">Preview</span>
+      </h2>
 
-                {/* Pricing */}
-                <div className="p-6 bg-gradient-to-br from-rose-950 to-pink-950 rounded-2xl mt-8 text-center">
-                  <p className="text-rose-100 text-sm mb-2">One-time payment</p>
-                  <p className="text-4xl font-light text-white mb-4">$9.99</p>
-                  <p className="text-rose-200 text-sm mb-6">
-                    Unlimited shares. Forever yours.
-                  </p>
-                  <Button
-                    className="w-full text-lg py-6 bg-white hover:bg-rose-50 text-rose-950"
-                    onClick={() => alert("Payment integration coming soon!")}
-                  >
-                    <Lock className="w-5 h-5 mr-2" />
-                    Unlock & Create Link
-                  </Button>
-                </div>
+      <p className="text-muted-foreground">
+        This is exactly how {giftData.recipientName} will experience it
+      </p>
+    </div>
 
-                <Button
-                  onClick={goToPrev}
-                  variant="outline"
-                  className="w-full mt-4 py-6 bg-transparent"
-                >
-                  <ArrowLeft className="w-5 h-5 mr-2" />
-                  Go Back & Edit
-                </Button>
-              </StepWrapper>
-            )}
+    {/* REAL PREVIEW */}
+    <div className="rounded-2xl overflow-hidden border border-border bg-background">
+      <iframe
+        src={`/gift/valentine/${giftId}?preview=1`}
+        className="w-full h-[80vh]"
+        allow="autoplay"
+      />
+    </div>
+
+    {/* Go back */}
+    <Button
+      onClick={goToPrev}
+      variant="outline"
+      className="w-full mt-6 py-6 bg-transparent"
+    >
+      <ArrowLeft className="w-5 h-5 mr-2" />
+      Go Back & Edit
+    </Button>
+
+    {/* 🔐 UNLOCK SECTION */}
+    <div className="mt-8 p-6 rounded-2xl border border-border bg-secondary/30 space-y-4">
+      <div className="flex items-center gap-2 text-foreground">
+        <Lock className="w-5 h-5" />
+        <h3 className="text-lg font-medium">Unlock & Share</h3>
+      </div>
+
+      <p className="text-sm text-muted-foreground">
+        Once unlocked, this gift can no longer be edited.
+      </p>
+
+      <Input
+        placeholder="Enter coupon code"
+        value={couponCode}
+        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+        disabled={unlocking}
+      />
+
+      {couponError && (
+        <p className="text-sm text-red-500">{couponError}</p>
+      )}
+
+      <Button
+        onClick={unlockWithCoupon}
+        disabled={!couponCode || unlocking}
+        className="w-full py-6 bg-primary hover:bg-primary/90 text-primary-foreground"
+      >
+        {unlocking ? "Unlocking..." : "Unlock & Generate Share Link"}
+      </Button>
+
+      {/* Future payment placeholder */}
+      <Button
+        variant="outline"
+        disabled
+        className="w-full py-6 bg-transparent"
+      >
+        Proceed to Payment (Coming Soon)
+      </Button>
+    </div>
+  </StepWrapper>
+)}
+
+
           </AnimatePresence>
         </div>
       </div>

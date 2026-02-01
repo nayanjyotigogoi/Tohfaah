@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Navigation } from "@/components/navigation";
 import { FloatingElements } from "@/components/floating-elements";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import {
   Copy,
   Check,
 } from "lucide-react";
+
+/* ================= TYPES ================= */
 
 interface GiftResponse {
   recipient_name: string;
@@ -26,11 +28,14 @@ interface GiftResponse {
 
 export default function SurprisePublicPage() {
   const { token } = useParams<{ token: string }>();
+  const router = useRouter();
+
   const [data, setData] = useState<GiftResponse | null>(null);
   const [now, setNow] = useState(new Date());
   const [copied, setCopied] = useState(false);
 
-  const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/surprise/${token}`;
+  const shareUrl =
+    typeof window !== "undefined" ? window.location.href : "";
 
   /* ================= FETCH ================= */
 
@@ -49,7 +54,9 @@ export default function SurprisePublicPage() {
     if (!data.gift_data.time) {
       return new Date(`${data.gift_data.date}T23:59:59`);
     }
-    return new Date(`${data.gift_data.date}T${data.gift_data.time}:00`);
+    return new Date(
+      `${data.gift_data.date}T${data.gift_data.time}:00`
+    );
   }, [data]);
 
   useEffect(() => {
@@ -71,7 +78,19 @@ export default function SurprisePublicPage() {
 
   /* ================= SHARE ================= */
 
-  const copyLink = async () => {
+  const handleShare = async () => {
+    if (navigator.share) {
+      await navigator.share({
+        title: "A moment for you 💖",
+        text: "Someone created a special moment for you.",
+        url: shareUrl,
+      });
+    } else {
+      await handleCopy();
+    }
+  };
+
+  const handleCopy = async () => {
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -85,7 +104,7 @@ export default function SurprisePublicPage() {
       <Navigation />
 
       <div className="pt-28 pb-20 px-4">
-        <div className="max-w-2xl mx-auto space-y-8">
+        <div className="max-w-2xl mx-auto space-y-10">
 
           {/* HEADER */}
           <div className="text-center">
@@ -101,7 +120,9 @@ export default function SurprisePublicPage() {
           </div>
 
           {/* CARD */}
-          <div className="bg-white rounded-[32px] p-10 shadow-2xl text-center">
+          <div className="relative bg-white rounded-[32px] p-10 shadow-2xl text-center overflow-hidden">
+
+            {/* COUNTDOWN */}
             <div className="grid grid-cols-4 gap-4 mb-8">
               {Object.entries(time).map(([k, v]) => (
                 <FlipBlock key={k} value={v} label={k} />
@@ -121,50 +142,97 @@ export default function SurprisePublicPage() {
             <p className="text-sm text-primary">
               — {data.sender_name}
             </p>
+
+            {/* ✨ MICRO PREMIUM DIAGONAL WATERMARK */}
+            {/* <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div
+                className="absolute top-6 right-[3%] w-[181.5%]"
+                style={{ transform: "rotate(-28deg)" }}
+              >
+                <div
+                  className="mx-auto max-w-xl px-6 py-[6px]"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015), rgba(255,255,255,0.05))",
+                    backdropFilter: "blur(1px)",
+                  }}
+                >
+                  <span
+                    className="block text-center text-black/90 font-light tracking-[0.1em] text-[10px] md:text-xs select-none"
+                    style={{
+                      textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+                    }}
+                  >
+                    via tohfaah
+                  </span>
+                </div>
+              </div>
+            </div> */}
           </div>
 
-          {/* SHARE BAR */}
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            <ShareButton
-              href={`https://wa.me/?text=${encodeURIComponent(shareUrl)}`}
-              label="WhatsApp"
-            />
-            <ShareButton
-              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(
-                shareUrl
-              )}`}
-              label="X"
-            />
-            <ShareButton
-              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-                shareUrl
-              )}`}
-              label="Facebook"
-            />
+          {/* SHARE + COPY */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleShare}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition"
+              >
+                <Share2 className="w-4 h-4" />
+                Share this Reminder
+              </button>
 
-            <Button variant="outline" onClick={copyLink}>
-              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-            </Button>
+              <button
+                onClick={handleCopy}
+                className="p-3 rounded-full border border-border hover:bg-muted transition"
+                aria-label="Copy link"
+              >
+                {copied ? (
+                  <Check className="w-4 h-4 text-green-600" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+
+            {copied && (
+              <p className="text-xs text-muted-foreground">
+                Link copied — share it anywhere 💖
+              </p>
+            )}
           </div>
 
           {/* CTA */}
-          <div className="text-center">
-            <Button
-              asChild
-              className="px-10 py-6 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-14 rounded-2xl bg-gradient-to-br from-rose-100 via-pink-100 to-background border p-8 text-center space-y-4"
+          >
+            <h3 className="text-xl md:text-2xl font-light">
+              Want to create a Reminder like this?
+            </h3>
+            <p className="text-muted-foreground">
+              Pick a date, write a message, and let the countdown begin ✨
+            </p>
+            <button
+              onClick={() => router.push("/free-gifts/surprise")}
+              className="px-8 py-4 rounded-full bg-primary text-primary-foreground text-lg shadow-md"
             >
-              <a href="/free-gifts/surprise">
-                Create Your Own Moment
-              </a>
-            </Button>
-          </div>
+              Create Your Own Reminder
+            </button>
+            <p className="text-xs text-muted-foreground">
+              No signup required 💗
+            </p>
+          </motion.div>
+
         </div>
       </div>
     </main>
   );
 }
 
-/* ================= FLIP DIGIT ================= */
+/* ================= FLIP BLOCK ================= */
 
 function FlipBlock({
   value,
@@ -195,26 +263,5 @@ function FlipBlock({
         {label.toUpperCase()}
       </div>
     </div>
-  );
-}
-
-/* ================= SHARE BUTTON ================= */
-
-function ShareButton({
-  href,
-  label,
-}: {
-  href: string;
-  label: string;
-}) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="px-4 py-2 text-sm rounded-full border bg-white hover:bg-secondary transition"
-    >
-      {label}
-    </a>
   );
 }

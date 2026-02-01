@@ -126,7 +126,7 @@ useEffect(() => {
                   Free Gift
                 </Button>
               </Link>
-              <Link href="/create">
+              <Link href="/coming-soon">
                 <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   <Sparkles className="w-4 h-4 mr-2" />
                   Premium Experience
@@ -218,7 +218,7 @@ useEffect(() => {
                   title="No premium gifts yet"
                   description="Create a premium experience"
                   actionLabel="Create Experience"
-                  actionHref="/create"
+                  actionHref="/coming-soon"
                 />
               ) : (
                 livePremium.map((gift) => (
@@ -239,7 +239,7 @@ useEffect(() => {
                   title="No drafts"
                   description="Start creating to save drafts"
                   actionLabel="Create Experience"
-                  actionHref="/create"
+                  actionHref="/coming-soon"
                 />
               ) : (
                 draftPremium.map((gift) => (
@@ -255,7 +255,7 @@ useEffect(() => {
                   title="No orders yet"
                   description="Browse the shop"
                   actionLabel="Visit Shop"
-                  actionHref="/shop"
+                  actionHref="/coming-soon"
                 />
               ) : (
                 orders.map((order) => (

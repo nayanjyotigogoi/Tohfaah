@@ -191,7 +191,7 @@ export default function AboutPage() {
               Join thousands of people sharing love in extraordinary ways.
             </p>
             <a
-              href="/create"
+              href="/coming-soon"
               className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground rounded-full text-lg font-medium hover:bg-primary/90 transition-colors"
             >
               <Sparkles className="w-5 h-5" />

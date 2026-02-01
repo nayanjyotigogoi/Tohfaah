@@ -81,7 +81,7 @@ export function PremiumSection() {
               ))}
             </div>
 
-            <Link href="/create">
+            <Link href="/coming-soon">
               <Button
                 size="lg"
                 className="text-lg px-8 py-6 bg-white hover:bg-rose-50 text-rose-950 shadow-xl"

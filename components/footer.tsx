@@ -19,8 +19,16 @@ const footerLinks = {
     { id: "contact", label: "Contact", href: "/contact" },
   ],
   legal: [
-    { id: "privacy", label: "Privacy Policy", href: "/privacy" },
-    { id: "terms", label: "Terms of Service", href: "/terms" },
+    {
+      id: "privacy",
+      label: "Privacy Policy",
+      href: "/legal/privacy-policy",
+    },
+    {
+      id: "terms",
+      label: "Terms of Service",
+      href: "/legal/terms-of-service",
+    },
   ],
 };
 
@@ -84,6 +92,8 @@ export function Footer() {
                 <li key={link.id}>
                   <Link
                     href={link.href}
+                    rel="nofollow noopener"
+                    aria-label={link.label}
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
                     {link.label}
@@ -96,17 +106,34 @@ export function Footer() {
 
         {/* Bottom */}
         <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-muted-foreground text-sm">
-            &copy; {new Date().getFullYear()} Tohfaah. Made with{" "}
-            <motion.span
-              className="inline-block text-primary"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 1, repeat: Infinity }}
-            >
-              <Heart className="w-4 h-4 inline fill-current" />
-            </motion.span>
-          </p>
-          <p className="text-muted-foreground text-sm italic">
+          <div className="text-muted-foreground text-sm flex flex-col sm:flex-row gap-2 items-center">
+            <span>
+              &copy; {new Date().getFullYear()} Tohfaah. Made with{" "}
+              <motion.span
+                className="inline-block text-primary"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
+                <Heart className="w-4 h-4 inline fill-current" />
+              </motion.span>
+            </span>
+
+            <span className="hidden sm:inline">•</span>
+
+            <span>
+              Built by{" "}
+              <a
+                href="https://www.anvayasolution.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-primary hover:underline"
+              >
+                Anvaya Solution
+              </a>
+            </span>
+          </div>
+
+          <p className="text-muted-foreground text-sm italic text-center">
             &ldquo;Every gift tells a story. Make yours unforgettable.&rdquo;
           </p>
         </div>

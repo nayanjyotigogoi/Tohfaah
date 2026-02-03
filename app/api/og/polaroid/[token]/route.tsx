@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 export const runtime = "nodejs";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_URL || "https://tohfaah.online";
 
 export async function GET(
   req: Request,
@@ -22,7 +22,7 @@ export async function GET(
 
     const gift = await res.json();
 
-    // ✅ ONLY validate gift type (never gift_data)
+    // ✅ Validate gift type ONLY
     if (gift.gift_type !== "polaroid") {
       throw new Error("Invalid polaroid gift");
     }
@@ -34,14 +34,10 @@ export async function GET(
       gift.gift_data?.message?.slice(0, 120) ??
       "A memory made with love.";
 
-    // ✅ Safe image fallback
-    const imagePath = gift.gift_data?.image_path;
-    const imageUrl = imagePath
-      ? `${API_BASE_URL}/${imagePath}`
-      : `${API_BASE_URL}/placeholder-polaroid.jpg`;
-
-    // Repeat image to create intentional grid
-    const images = [imageUrl, imageUrl, imageUrl];
+    // ✅ BACKEND RETURNS FULL IMAGE URL
+    const imageUrl =
+      gift.gift_data?.image_url ??
+      "https://tohfaah.online/placeholder-polaroid.jpg";
 
     return new ImageResponse(
       (
@@ -49,109 +45,96 @@ export async function GET(
           style={{
             width: "100%",
             height: "100%",
-            background: "linear-gradient(135deg, #fff1f2, #fdf2f8)",
-            padding: 60,
+            background: "linear-gradient(180deg,#fff1f2,#fdf2f8)",
             display: "flex",
-            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
             fontFamily: "ui-sans-serif, system-ui",
-            boxSizing: "border-box",
           }}
         >
-          {/* HEADER */}
-          <div style={{ textAlign: "center", marginBottom: 36 }}>
+          {/* POLAROID CARD */}
+          <div
+            style={{
+              background: "#ffffff",
+              width: 720,
+              padding: 32,
+              paddingBottom: 72,
+              borderRadius: 22,
+              boxShadow: "0 30px 60px rgba(0,0,0,0.18)",
+              textAlign: "center",
+            }}
+          >
+            {/* IMAGE */}
+            <img
+              src={imageUrl}
+              width={620}
+              height={620}
+              style={{
+                objectFit: "cover",
+                borderRadius: 10,
+                display: "block",
+                margin: "0 auto",
+              }}
+            />
+
+            {/* CAPTION */}
             <div
               style={{
-                fontSize: 42,
+                marginTop: 28,
+                fontSize: 34,
                 fontWeight: 600,
                 color: "#111827",
               }}
             >
               A Polaroid for {recipient} 🤍
             </div>
+
             <div
               style={{
-                marginTop: 8,
-                fontSize: 24,
+                marginTop: 12,
+                fontSize: 22,
                 color: "#6b7280",
               }}
             >
               From {sender}
             </div>
-          </div>
 
-          {/* POLAROID GRID */}
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: 32,
-            }}
-          >
-            {images.map((src, index) => (
-              <div
-                key={index}
-                style={{
-                  background: "#ffffff",
-                  padding: 18,
-                  paddingBottom: 40,
-                  borderRadius: 10,
-                  boxShadow: "0 20px 40px rgba(0,0,0,0.18)",
-                  transform:
-                    index === 0
-                      ? "rotate(-4deg)"
-                      : index === 1
-                      ? "rotate(3deg)"
-                      : "rotate(-1deg)",
-                }}
-              >
-                <img
-                  src={src}
-                  width={260}
-                  height={260}
-                  style={{
-                    objectFit: "cover",
-                    borderRadius: 6,
-                    display: "block",
-                  }}
-                />
-
-                {/* CAPTION */}
-                <div
-                  style={{
-                    marginTop: 14,
-                    textAlign: "center",
-                    fontSize: 18,
-                    color: "#374151",
-                    padding: "0 6px",
-                  }}
-                >
-                  {message}
-                </div>
-              </div>
-            ))}
+            <div
+              style={{
+                marginTop: 20,
+                fontSize: 20,
+                color: "#374151",
+                padding: "0 12px",
+              }}
+            >
+              {message}
+            </div>
           </div>
 
           {/* WATERMARK */}
           <div
             style={{
               position: "absolute",
-              bottom: 28,
-              right: 40,
-              fontSize: 18,
+              bottom: 40,
+              fontSize: 22,
               color: "#9ca3af",
             }}
           >
             Made with{" "}
-            <span style={{ color: "#ec4899" }}>Tohfaah</span> 🤍
+            <span style={{ color: "#ec4899", fontWeight: 600 }}>
+              Tohfaah
+            </span>{" "}
+            🤍
           </div>
         </div>
       ),
-      { width: 1200, height: 630 }
+      {
+        width: 1080,
+        height: 1350, // ✅ TRUE PORTRAIT
+      }
     );
   } catch {
-    // ✅ NEVER crash OG
+    // ✅ OG must NEVER crash
     return new ImageResponse(
       (
         <div
@@ -161,14 +144,14 @@ export async function GET(
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 40,
+            fontSize: 42,
             background: "#fff",
           }}
         >
           Polaroid Memory 🤍
         </div>
       ),
-      { width: 1200, height: 630 }
+      { width: 1080, height: 1350 }
     );
   }
 }

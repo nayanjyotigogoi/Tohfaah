@@ -13,7 +13,7 @@ type GiftData = {
   sender_name?: string;
   gift_data: {
     message: string;
-    image_path: string;
+    image_url: string;
   };
 };
 
@@ -31,9 +31,8 @@ export default function PublicPolaroidPage() {
   const shareUrl =
     typeof window !== "undefined" ? window.location.href : "";
 
-  const imageSrc = gift
-    ? `${process.env.NEXT_PUBLIC_API_URL}/${gift.gift_data.image_path}`
-    : "";
+  // ✅ FINAL IMAGE SOURCE (NO GUESSING)
+  const imageSrc = gift?.gift_data.image_url ?? "";
 
   /* =======================
      FETCH POLAROID
@@ -61,7 +60,10 @@ export default function PublicPolaroidPage() {
     fetchGift();
   }, [token]);
 
-  const handleFlip = () => setIsFlipped(v => !v);
+  /* =======================
+     INTERACTIONS
+  ======================= */
+  const handleFlip = () => setIsFlipped((v) => !v);
 
   const handleShake = () => {
     setIsShaking(true);
@@ -157,13 +159,15 @@ export default function PublicPolaroidPage() {
                 className="relative bg-white p-4 pb-16 shadow-xl rounded-sm"
                 style={{ backfaceVisibility: "hidden" }}
               >
-                <div className="w-64 h-64 md:w-80 md:h-80 overflow-hidden">
+                {/* ✅ FIXED: portrait container */}
+                <div className="w-64 md:w-80 aspect-[3/4] overflow-hidden">
                   <img
                     src={imageSrc}
                     alt="Polaroid memory"
                     className="w-full h-full object-cover"
                   />
                 </div>
+
                 <p className="absolute bottom-4 left-0 right-0 text-center text-gray-500 text-sm">
                   Tap to flip
                 </p>
@@ -177,7 +181,8 @@ export default function PublicPolaroidPage() {
                   transform: "rotateY(180deg)",
                 }}
               >
-                <div className="w-64 h-64 md:w-80 md:h-80 flex flex-col items-center justify-center text-center">
+                {/* ✅ FIXED: portrait container */}
+                <div className="w-64 md:w-80 aspect-[3/4] flex flex-col items-center justify-center text-center">
                   <Heart className="w-8 h-8 text-primary fill-primary mb-4" />
                   <p className="text-foreground text-lg leading-relaxed whitespace-pre-wrap">
                     {gift.gift_data.message || "You are loved."}
@@ -204,7 +209,7 @@ export default function PublicPolaroidPage() {
             </button>
           </div>
 
-          {/* SHARE + COPY */}
+          {/* SHARE */}
           <div className="flex flex-col items-center gap-3">
             <div className="flex items-center gap-3">
               <button

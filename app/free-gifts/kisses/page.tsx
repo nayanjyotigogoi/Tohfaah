@@ -33,16 +33,16 @@ export default function KissesGiftPage() {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-  if (!shareToken) return;
+    if (!shareToken) return;
 
-  const url = `${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/kisses/${shareToken}`;
+    const url = `${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/kisses/${shareToken}`;
 
-  try {
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  } catch (err) {
-    console.error("Copy failed", err);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Copy failed", err);
     }
   };
 
@@ -66,7 +66,6 @@ export default function KissesGiftPage() {
     setKisses((prev) => [...prev, newKiss]);
   };
 
-  
   /* =======================
      CREATE (BACKEND)
   ======================= */
@@ -76,12 +75,21 @@ export default function KissesGiftPage() {
     setLoading(true);
 
     try {
+      const authToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("auth_token")
+          : null;
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
         {
           method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(authToken
+              ? { Authorization: `Bearer ${authToken}` }
+              : {}),
+          },
           body: JSON.stringify({
             gift_type: "kisses",
             recipient_name: recipientName,
@@ -321,32 +329,31 @@ export default function KissesGiftPage() {
                     {`${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/kisses/${shareToken}`}
                   </p>
 
-                  {/* COPY BUTTON */}
                   <div className="flex justify-center">
                     <button
                       onClick={handleCopy}
                       aria-label="Copy link"
                       className="flex items-center gap-2 text-sm text-primary hover:text-primary/80"
-                      >
-                        {copied ? (
-                          <>
-                            <Check className="w-4 h-4 text-green-600" />
-                            Copied
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-4 h-4" />
-                            Copy link
-                          </>
-                        )}
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-4 h-4 text-green-600" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          Copy link
+                        </>
+                      )}
                     </button>
                   </div>
 
-                    {copied && (
-                      <p className="text-xs text-muted-foreground">
-                        Link copied — paste it anywhere 💖
-                      </p>
-                    )}
+                  {copied && (
+                    <p className="text-xs text-muted-foreground">
+                      Link copied — paste it anywhere 💖
+                    </p>
+                  )}
                 </div>
 
                 <Button variant="outline" onClick={handleReset}>

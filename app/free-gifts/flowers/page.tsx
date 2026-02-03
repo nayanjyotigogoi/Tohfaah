@@ -31,18 +31,30 @@ export default function FlowersGiftPage() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  /* =======================
+     CREATE (BACKEND)
+  ======================= */
   const handleCreate = async () => {
     if (!recipientName || !senderName) return;
 
     setLoading(true);
 
     try {
+      const authToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("auth_token")
+          : null;
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
         {
           method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(authToken
+              ? { Authorization: `Bearer ${authToken}` }
+              : {}),
+          },
           body: JSON.stringify({
             gift_type: "flowers",
             recipient_name: recipientName,
@@ -78,7 +90,7 @@ export default function FlowersGiftPage() {
   };
 
   /* =======================
-     COPY LINK (ADDED)
+     COPY LINK
   ======================= */
   const handleCopy = async () => {
     if (!shareToken) return;
@@ -132,7 +144,6 @@ export default function FlowersGiftPage() {
                   className="text-lg"
                 />
 
-                {/* Flower Picker (UNCHANGED) */}
                 <div className="flex gap-4 overflow-x-auto pb-4 px-1">
                   {flowers.map((flower) => (
                     <motion.button
@@ -146,7 +157,12 @@ export default function FlowersGiftPage() {
                           : "border-border"
                       }`}
                     >
-                      <Image src={flower.image} alt={flower.name} width={120} height={120} />
+                      <Image
+                        src={flower.image}
+                        alt={flower.name}
+                        width={120}
+                        height={120}
+                      />
                       <p className="mt-2 text-sm font-medium">{flower.name}</p>
                     </motion.button>
                   ))}
@@ -181,7 +197,10 @@ export default function FlowersGiftPage() {
               >
                 <div className="text-center">
                   <h2 className="text-2xl font-light">
-                    For <span className="italic text-primary">{recipientName}</span>
+                    For{" "}
+                    <span className="italic text-primary">
+                      {recipientName}
+                    </span>
                   </h2>
                 </div>
 
@@ -227,7 +246,6 @@ export default function FlowersGiftPage() {
                   Bouquet <span className="italic text-primary">Ready!</span>
                 </h2>
 
-                {/* LINK + COPY (ADDED) */}
                 <div className="flex items-center gap-3">
                   <div className="flex-1 p-4 bg-secondary rounded-xl font-mono text-sm break-all">
                     {`${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/flowers/${shareToken}`}

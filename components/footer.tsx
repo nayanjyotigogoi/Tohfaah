@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Heart } from "lucide-react";
+import { Heart, Instagram } from "lucide-react";
 
 const footerLinks = {
   experience: [
@@ -105,7 +105,7 @@ export function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-muted-foreground text-sm flex flex-col sm:flex-row gap-2 items-center">
             <span>
               &copy; {new Date().getFullYear()} Tohfaah. Made with{" "}
@@ -133,9 +133,24 @@ export function Footer() {
             </span>
           </div>
 
-          <p className="text-muted-foreground text-sm italic text-center">
-            &ldquo;Every gift tells a story. Make yours unforgettable.&rdquo;
-          </p>
+          {/* Quote + Social */}
+          <div className="flex items-center gap-4">
+            <p className="text-muted-foreground text-sm italic text-center">
+              &ldquo;Every gift tells a story. Make yours unforgettable.&rdquo;
+            </p>
+
+            {/* Instagram */}
+            <motion.a
+              href="https://www.instagram.com/tohfaah.online/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Tohfaah on Instagram"
+              whileHover={{ scale: 1.15 }}
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Instagram className="w-5 h-5" />
+            </motion.a>
+          </div>
         </div>
       </div>
     </footer>

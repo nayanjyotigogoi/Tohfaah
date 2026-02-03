@@ -38,12 +38,21 @@ export default function HugGiftPage() {
     setLoading(true);
 
     try {
+      const authToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("auth_token")
+          : null;
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
         {
           method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(authToken
+              ? { Authorization: `Bearer ${authToken}` }
+              : {}),
+          },
           body: JSON.stringify({
             gift_type: "hug",
             recipient_name: recipientName,
@@ -91,7 +100,7 @@ export default function HugGiftPage() {
   };
 
   /* =======================
-     COPY LINK (ADDED)
+     COPY LINK
   ======================= */
   const handleCopy = async () => {
     if (!shareToken) return;
@@ -141,7 +150,6 @@ export default function HugGiftPage() {
                 exit={{ opacity: 0, y: -20 }}
                 className="space-y-8"
               >
-                {/* Header */}
                 <div className="text-center">
                   <motion.div
                     className="relative w-16 h-16 rounded-full bg-primary/10 mb-4 overflow-hidden mx-auto"
@@ -164,7 +172,6 @@ export default function HugGiftPage() {
                   </p>
                 </div>
 
-                {/* Form */}
                 <div className="space-y-4">
                   <Input
                     value={recipientName}
@@ -180,7 +187,6 @@ export default function HugGiftPage() {
                   />
                 </div>
 
-                {/* Hug Style Selector */}
                 <div className="flex justify-center gap-2 flex-wrap">
                   {HUG_STYLES.map((style) => (
                     <button
@@ -202,7 +208,6 @@ export default function HugGiftPage() {
                   ))}
                 </div>
 
-                {/* Preview Card */}
                 <div className="p-8 bg-gradient-to-br from-rose-100 to-pink-100 rounded-2xl text-center">
                   <motion.div
                     className="relative w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden"
@@ -252,7 +257,6 @@ export default function HugGiftPage() {
                   </p>
                 </div>
 
-                {/* ORIGINAL BALANCED PREVIEW */}
                 <div className="flex flex-col md:flex-row items-center justify-center gap-6">
                   <motion.div
                     className="relative aspect-square max-w-sm w-full"
@@ -323,7 +327,6 @@ export default function HugGiftPage() {
                   Hug <span className="italic text-primary">Ready!</span>
                 </h2>
 
-                {/* LINK + COPY (ADDED, NO REMOVALS) */}
                 <div className="flex items-center gap-3">
                   <p className="flex-1 font-mono break-all text-sm bg-secondary p-3 rounded-lg">
                     {`${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/hug/${shareToken}`}

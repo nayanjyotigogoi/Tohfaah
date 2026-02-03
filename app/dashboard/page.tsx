@@ -38,16 +38,20 @@ export default function DashboardPage() {
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
   /* =========================================================
-     LOAD DASHBOARD
+     LOAD DASHBOARD (TOKEN BASED)
   ========================================================= */
   useEffect(() => {
     const loadDashboard = async () => {
       try {
+        const token = localStorage.getItem("auth_token");
+
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/dashboard-data`,
           {
-            credentials: "include",
-            headers: { Accept: "application/json" },
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            },
           }
         );
 
@@ -368,10 +372,19 @@ function DraftCard({ gift, onDeleted }: any) {
   };
 
   const deleteDraft = async () => {
+    const token = localStorage.getItem("auth_token");
+
     await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/premium-gifts/${gift.id}`,
-      { method: "DELETE", credentials: "include" }
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      }
     );
+
     onDeleted();
   };
 

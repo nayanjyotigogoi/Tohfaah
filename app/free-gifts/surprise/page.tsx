@@ -62,12 +62,21 @@ export default function SurprisePage() {
   /* ================= CREATE → BACKEND ================= */
 
   const createMoment = async () => {
+    const authToken =
+      typeof window !== "undefined"
+        ? localStorage.getItem("auth_token")
+        : null;
+
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
       {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(authToken
+            ? { Authorization: `Bearer ${authToken}` }
+            : {}),
+        },
         body: JSON.stringify({
           gift_type: "moment",
           recipient_name: memory.receiver,

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const runtime = "nodejs"; // ✅ IMPORTANT (edge breaks localhost)
+export const runtime = "nodejs";
 
 export async function GET(
   req: Request,
@@ -16,15 +16,13 @@ export async function GET(
 
     const gift = await res.json();
 
-    if (
-      gift.gift_type !== "kisses" ||
-      !Array.isArray(gift.gift_data?.kisses) ||
-      gift.gift_data.kisses.length === 0
-    ) {
+    if (gift.gift_type !== "kisses") {
       throw new Error("Invalid kiss gift");
     }
 
-    const kisses = gift.gift_data.kisses.slice(0, 6);
+    const kisses = Array.isArray(gift.gift_data?.kisses)
+      ? gift.gift_data.kisses.slice(0, 6)
+      : [];
 
     return new ImageResponse(
       (
@@ -55,22 +53,39 @@ export async function GET(
                 gap: 16,
               }}
             >
-              {kisses.map((_: any, i: number) => (
-                <div
-                  key={i}
-                  style={{
-                    background: "#fde2e4",
-                    aspectRatio: "1 / 1",
-                    borderRadius: 12,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 42,
-                  }}
-                >
-                  💋
-                </div>
-              ))}
+              {kisses.length > 0
+                ? kisses.map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        background: "#fde2e4",
+                        aspectRatio: "1 / 1",
+                        borderRadius: 12,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 42,
+                      }}
+                    >
+                      💋
+                    </div>
+                  ))
+                : Array.from({ length: 3 }).map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        background: "#fde2e4",
+                        aspectRatio: "1 / 1",
+                        borderRadius: 12,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 42,
+                      }}
+                    >
+                      💋
+                    </div>
+                  ))}
             </div>
 
             <div style={{ marginTop: 24, textAlign: "center" }}>

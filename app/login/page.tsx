@@ -25,62 +25,52 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError(null);
-  setIsLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
 
-  try {
-    // 1️⃣ GET CSRF COOKIE (MANDATORY FOR SANCTUM SPA)
-    await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/sanctum/csrf-cookie`,
-      {
-        method: "GET",
-        credentials: "include", // 🔥 REQUIRED
+    try {
+      // 🔐 TOKEN-BASED LOGIN (NO COOKIES, NO CSRF)
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const message =
+          data?.errors
+            ? Object.values(data.errors).flat().join(" ")
+            : data?.message || "Invalid email or password.";
+        throw new Error(message);
       }
-    );
 
-    // 2️⃣ LOGIN (SESSION-BASED)
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
-      {
-        method: "POST",
-        credentials: "include", // 🔥 REQUIRED
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+      // ✅ STORE TOKEN (SOURCE OF TRUTH)
+      if (data.token) {
+        localStorage.setItem("auth_token", data.token);
       }
-    );
 
-    const data = await res.json();
+      // ✅ REDIRECT AFTER TOKEN LOGIN
+      router.replace("/dashboard");
 
-    if (!res.ok) {
-      const message =
-        data?.errors
-          ? Object.values(data.errors).flat().join(" ")
-          : data?.message || "Invalid email or password.";
-      throw new Error(message);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setIsLoading(false);
     }
-
-    // ✅ OPTIONAL: keep token if you want hybrid auth
-    if (data.token) {
-      localStorage.setItem("auth_token", data.token);
-    }
-
-    // ✅ SESSION IS NOW ESTABLISHED
-    router.replace("/dashboard");
-
-  } catch (err: any) {
-    setError(err.message || "Something went wrong.");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-background flex items-center justify-center p-4 relative overflow-hidden">
@@ -171,9 +161,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
             {/* Actions */}
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">
-            
-              </span>
+              <span className="text-muted-foreground"></span>
               <Link
                 href="/forgot-password"
                 className="text-primary hover:text-primary/80"

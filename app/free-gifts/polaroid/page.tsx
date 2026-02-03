@@ -13,7 +13,7 @@ import {
   Share2,
   RotateCcw,
   Sparkles,
-  Copy,          // ✅ add this
+  Copy,
   Check,
 } from "lucide-react";
 
@@ -44,7 +44,6 @@ export default function PolaroidGiftPage() {
 
   const [copied, setCopied] = useState(false);
 
-
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   /**
@@ -52,27 +51,26 @@ export default function PolaroidGiftPage() {
    * - base64 → preview
    * - public path → /images/polaroid/xxx.jfif
    */
-const imageSrc =
-  image?.startsWith("data:")
-    ? image
-    : image
-    ? `${process.env.NEXT_PUBLIC_API_URL}/${image.replace(/^public\//, "")}`
-    : null;
+  const imageSrc =
+    image?.startsWith("data:")
+      ? image
+      : image
+      ? `${process.env.NEXT_PUBLIC_API_URL}/${image.replace(/^public\//, "")}`
+      : null;
 
-const handleCopy = async () => {
-  if (!shareToken) return;
+  const handleCopy = async () => {
+    if (!shareToken) return;
 
-  const url = `${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/polaroid/${shareToken}`;
+    const url = `${process.env.NEXT_PUBLIC_APP_URL}/free-gifts/polaroid/${shareToken}`;
 
-  try {
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  } catch (err) {
-    console.error("Copy failed", err);
-  }
-};
-
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Copy failed", err);
+    }
+  };
 
   /* ============================
      IMAGE UPLOAD
@@ -113,6 +111,7 @@ const handleCopy = async () => {
 
   /* ============================
      CREATE → BACKEND
+     ✅ ONLY CHANGE IS HERE
   ============================ */
   const handleCreate = async () => {
     if (!validate()) return;
@@ -120,6 +119,8 @@ const handleCopy = async () => {
     setLoading(true);
 
     try {
+      const token = localStorage.getItem("auth_token");
+
       const formData = new FormData();
       formData.append("gift_type", "polaroid");
       formData.append("recipient_name", recipientName.trim());
@@ -131,7 +132,9 @@ const handleCopy = async () => {
         `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
         {
           method: "POST",
-          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
           body: formData,
         }
       );
@@ -140,7 +143,6 @@ const handleCopy = async () => {
 
       const data = await res.json();
 
-      // backend returns: images/polaroid/xxx.jfif
       setImage(data.image_path);
       setShareToken(data.token);
       setStep("preview");

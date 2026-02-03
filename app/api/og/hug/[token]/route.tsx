@@ -3,10 +3,10 @@ import { ImageResponse } from "next/og";
 export const runtime = "nodejs";
 
 const API_BASE_URL =
-  process.env.API_BASE_URL ?? "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 const APP_BASE_URL =
-  process.env.APP_BASE_URL ?? "http://localhost:3000";
+  process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 export async function GET(
   req: Request,
@@ -22,11 +22,21 @@ export async function GET(
 
     const gift = await res.json();
 
-    const hugStyle = gift.gift_data?.hug_style ?? 1;
+    // ✅ ONLY validate gift type
+    if (gift.gift_type !== "hug") {
+      throw new Error("Invalid hug gift");
+    }
+
     const recipient = gift.recipient_name ?? "Someone special";
     const sender = gift.sender_name ?? "Someone who cares";
 
-    // Polaroid image sources (reusing hug styles for grid feel)
+    // ✅ Safe hug style fallback
+    const hugStyle =
+      typeof gift.gift_data?.hug_style === "number"
+        ? gift.gift_data.hug_style
+        : 1;
+
+    // ✅ Safe image fallbacks
     const images = [
       `${APP_BASE_URL}/hug-${hugStyle}.gif`,
       `${APP_BASE_URL}/hug-${((hugStyle % 3) || 1)}.gif`,
@@ -118,21 +128,17 @@ export async function GET(
               right: 40,
               fontSize: 20,
               color: "#9ca3af",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
             }}
           >
-            Made with <span style={{ color: "#ec4899" }}>Tohfaah</span> 🤍
+            Made with{" "}
+            <span style={{ color: "#ec4899" }}>Tohfaah</span> 🤍
           </div>
         </div>
       ),
-      {
-        width: 1200,
-        height: 630,
-      }
+      { width: 1200, height: 630 }
     );
-  } catch (err) {
+  } catch {
+    // ✅ OG should NEVER crash
     return new ImageResponse(
       (
         <div

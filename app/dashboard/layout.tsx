@@ -6,7 +6,7 @@ import { DashboardNavigation } from "@/components/dashboard-navigation";
 
 type AuthUser = {
   id: number;
-  name: string;
+  full_name: string;
   email: string;
 };
 
@@ -20,9 +20,18 @@ export default function DashboardLayout({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user`, {
-      credentials: "include", // 🔑 session cookie
-      headers: { Accept: "application/json" },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
     })
       .then((res) => {
         if (!res.ok) throw new Error("Unauthenticated");

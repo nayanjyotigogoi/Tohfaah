@@ -33,7 +33,7 @@ export default function SignupPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`,
         {
           method: "POST",
-          headers: {  
+          headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -52,8 +52,11 @@ export default function SignupPage() {
         throw new Error(data.message || "Signup failed");
       }
 
-      localStorage.setItem("auth_token", data.token);
-      window.location.href = "/dashboard";
+      /**
+       * REGISTER DOES NOT ISSUE TOKEN
+       * → Redirect user to login page
+       */
+      window.location.href = data.redirect || "/login";
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -87,10 +90,34 @@ export default function SignupPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <InputBlock label="Your Name" icon={<User />} value={name} onChange={setName} type="text" />
-            <InputBlock label="Email" icon={<Mail />} value={email} onChange={setEmail} type="email" />
-            <InputBlock label="Password" icon={<Lock />} value={password} onChange={setPassword} type="password" />
-            <InputBlock label="Confirm Password" icon={<Lock />} value={confirmPassword} onChange={setConfirmPassword} type="password" />
+            <InputBlock
+              label="Your Name"
+              icon={<User />}
+              value={name}
+              onChange={setName}
+              type="text"
+            />
+            <InputBlock
+              label="Email"
+              icon={<Mail />}
+              value={email}
+              onChange={setEmail}
+              type="email"
+            />
+            <InputBlock
+              label="Password"
+              icon={<Lock />}
+              value={password}
+              onChange={setPassword}
+              type="password"
+            />
+            <InputBlock
+              label="Confirm Password"
+              icon={<Lock />}
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              type="password"
+            />
 
             {/* Terms Checkbox */}
             <label className="flex items-start gap-3 text-sm text-muted-foreground">
@@ -112,7 +139,9 @@ export default function SignupPage() {
               </span>
             </label>
 
-            {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+            {error && (
+              <p className="text-sm text-red-600 text-center">{error}</p>
+            )}
 
             <Button
               type="submit"

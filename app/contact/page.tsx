@@ -20,14 +20,34 @@ export default function ContactPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-    }, 1500);
-  };
+  e.preventDefault();
+  setIsSubmitting(true);
+
+  try {
+    const res = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        email,
+        message,
+        honeypot: "",
+      }),
+    });
+
+    if (!res.ok) throw new Error("Failed");
+
+    setIsSubmitted(true);
+    setName("");
+    setEmail("");
+    setMessage("");
+  } catch {
+    alert("Something went wrong. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <main className="relative min-h-screen bg-background">

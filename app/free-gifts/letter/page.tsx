@@ -66,14 +66,21 @@ export default function LoveLetterPage() {
 
   const BODY_HEIGHT = paper.maxHeight * 0.45;
 
-  /* ---------------- CREATE LETTER (🔥 FIX) ---------------- */
+  /* ---------------- CREATE LETTER (TOKEN BASED) ---------------- */
   const createLetter = async () => {
+    const authToken =
+      typeof window !== "undefined"
+        ? localStorage.getItem("auth_token")
+        : null;
+
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
       {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        },
         body: JSON.stringify({
           gift_type: "letter",
           recipient_name: recipientName,
@@ -92,7 +99,7 @@ export default function LoveLetterPage() {
     }
 
     const data = await res.json();
-    setShareToken(data.token); // ✅ THIS WAS MISSING
+    setShareToken(data.token);
     setStage("experience");
   };
 

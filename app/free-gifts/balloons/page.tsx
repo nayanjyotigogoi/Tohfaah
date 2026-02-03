@@ -72,12 +72,21 @@ export default function BalloonsPage() {
     setLoading(true);
 
     try {
+      const authToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("auth_token")
+          : null;
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
         {
           method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(authToken
+              ? { Authorization: `Bearer ${authToken}` }
+              : {}),
+          },
           body: JSON.stringify({
             gift_type: "balloons",
             recipient_name: recipientName,
@@ -192,7 +201,6 @@ export default function BalloonsPage() {
     <main className="relative min-h-screen bg-gradient-to-b from-sky-400 via-sky-300 to-pink-200 overflow-hidden">
       <Navigation />
 
-      {/* HEADER */}
       <div className="pt-28 text-center relative z-10">
         <p className="text-sky-900 text-lg">For {recipientName}</p>
         <h2 className="text-3xl font-light">
@@ -200,7 +208,6 @@ export default function BalloonsPage() {
         </h2>
       </div>
 
-      {/* BALLOONS */}
       <div className="absolute inset-0">
         {balloons.map(
           (balloon) =>
@@ -236,7 +243,6 @@ export default function BalloonsPage() {
         )}
       </div>
 
-      {/* MESSAGE POP */}
       <AnimatePresence>
         {activeMessage && (
           <motion.div
@@ -250,7 +256,6 @@ export default function BalloonsPage() {
         )}
       </AnimatePresence>
 
-      {/* FINISH → MATCHES FLOWERS */}
       {balloons.every((b) => b.popped) && stage === "experience" && (
         <div className="fixed bottom-6 w-full px-4 z-20">
           <div className="max-w-md mx-auto space-y-3">
@@ -272,7 +277,6 @@ export default function BalloonsPage() {
         </div>
       )}
 
-      {/* SHARE (LINK ONLY — NO START OVER) */}
       {stage === "share" && (
         <div className="fixed bottom-6 w-full px-4 z-30">
           <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl p-6 space-y-5 text-center">
@@ -297,7 +301,6 @@ export default function BalloonsPage() {
                 Link copied — paste it anywhere 🎈
               </p>
             )}
-
           </div>
         </div>
       )}

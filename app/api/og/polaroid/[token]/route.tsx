@@ -3,10 +3,7 @@ import { ImageResponse } from "next/og";
 export const runtime = "nodejs";
 
 const API_BASE_URL =
-  process.env.API_BASE_URL ?? "http://localhost:8000";
-
-const APP_BASE_URL =
-  process.env.APP_BASE_URL ?? "http://localhost:3000";
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export async function GET(
   req: Request,
@@ -25,15 +22,25 @@ export async function GET(
 
     const gift = await res.json();
 
+    // ✅ ONLY validate gift type (never gift_data)
+    if (gift.gift_type !== "polaroid") {
+      throw new Error("Invalid polaroid gift");
+    }
+
     const recipient = gift.recipient_name ?? "Someone special";
     const sender = gift.sender_name ?? "Someone who cares";
+
     const message =
-      gift.gift_data?.message?.slice(0, 120) ||
+      gift.gift_data?.message?.slice(0, 120) ??
       "A memory made with love.";
 
-    const imageUrl = `${API_BASE_URL}/${gift.gift_data.image_path}`;
+    // ✅ Safe image fallback
+    const imagePath = gift.gift_data?.image_path;
+    const imageUrl = imagePath
+      ? `${API_BASE_URL}/${imagePath}`
+      : `${API_BASE_URL}/placeholder-polaroid.jpg`;
 
-    // Repeat image to form a grid (feels intentional in OG)
+    // Repeat image to create intentional grid
     const images = [imageUrl, imageUrl, imageUrl];
 
     return new ImageResponse(
@@ -82,7 +89,7 @@ export async function GET(
               gap: 32,
             }}
           >
-            {images.map((src: string, index: number) => (
+            {images.map((src, index) => (
               <div
                 key={index}
                 style={{
@@ -110,7 +117,7 @@ export async function GET(
                   }}
                 />
 
-                {/* Caption */}
+                {/* CAPTION */}
                 <div
                   style={{
                     marginTop: 14,
@@ -134,9 +141,6 @@ export async function GET(
               right: 40,
               fontSize: 18,
               color: "#9ca3af",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
             }}
           >
             Made with{" "}
@@ -144,13 +148,10 @@ export async function GET(
           </div>
         </div>
       ),
-      {
-        width: 1200,
-        height: 630,
-      }
+      { width: 1200, height: 630 }
     );
   } catch {
-    // Fallback OG image (never crash)
+    // ✅ NEVER crash OG
     return new ImageResponse(
       (
         <div
@@ -167,10 +168,7 @@ export async function GET(
           Polaroid Memory 🤍
         </div>
       ),
-      {
-        width: 1200,
-        height: 630,
-      }
+      { width: 1200, height: 630 }
     );
   }
 }

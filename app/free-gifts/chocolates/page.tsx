@@ -48,12 +48,21 @@ export default function ChocolatesPage() {
     setLoading(true);
 
     try {
+      const authToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("auth_token")
+          : null;
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
         {
           method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(authToken
+              ? { Authorization: `Bearer ${authToken}` }
+              : {}),
+          },
           body: JSON.stringify({
             gift_type: "chocolates",
             recipient_name: recipientName,
@@ -270,7 +279,6 @@ export default function ChocolatesPage() {
           Chocolates <span className="italic text-amber-700">Ready!</span>
         </h2>
 
-        {/* LINK + COPY */}
         <div className="flex items-center gap-3">
           <div className="flex-1 p-4 bg-secondary rounded-xl font-mono text-sm break-all">
             {shareUrl}
@@ -293,10 +301,6 @@ export default function ChocolatesPage() {
             Link copied — share the sweetness 🍫
           </p>
         )}
-
-        {/* <Button variant="outline" onClick={resetAll} className="w-full">
-          Create Another
-        </Button> */}
       </div>
     </main>
   );

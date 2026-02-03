@@ -3,10 +3,10 @@ import { ImageResponse } from "next/og";
 export const runtime = "nodejs";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_URL || "https://tohfaah.online";
 
 const APP_BASE_URL =
-  process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  process.env.NEXT_PUBLIC_APP_URL || "https://tohfaah.com";
 
 export async function GET(
   req: Request,

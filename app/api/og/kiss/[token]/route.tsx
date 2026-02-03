@@ -16,13 +16,23 @@ export async function GET(
 
     const gift = await res.json();
 
-    if (gift.gift_type !== "kisses") {
+    // ✅ ACCEPT ALL VALID KISS TYPES
+    const kissTypes = ["kisses", "kiss", "free_kisses"];
+    if (!kissTypes.includes(gift.gift_type)) {
       throw new Error("Invalid kiss gift");
     }
 
-    const kisses = Array.isArray(gift.gift_data?.kisses)
-      ? gift.gift_data.kisses.slice(0, 6)
-      : [];
+    // ✅ ROBUST KISS COUNT HANDLING
+    const kissCount =
+      Array.isArray(gift.gift_data?.kisses)
+        ? gift.gift_data.kisses.length
+        : typeof gift.gift_data?.kisses === "number"
+        ? gift.gift_data.kisses
+        : 3;
+
+    const kisses = Array.from({
+      length: Math.min(kissCount, 6),
+    });
 
     return new ImageResponse(
       (
@@ -53,39 +63,22 @@ export async function GET(
                 gap: 16,
               }}
             >
-              {kisses.length > 0
-                ? kisses.map((_, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        background: "#fde2e4",
-                        aspectRatio: "1 / 1",
-                        borderRadius: 12,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 42,
-                      }}
-                    >
-                      💋
-                    </div>
-                  ))
-                : Array.from({ length: 3 }).map((_, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        background: "#fde2e4",
-                        aspectRatio: "1 / 1",
-                        borderRadius: 12,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 42,
-                      }}
-                    >
-                      💋
-                    </div>
-                  ))}
+              {kisses.map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    background: "#fde2e4",
+                    aspectRatio: "1 / 1",
+                    borderRadius: 12,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 42,
+                  }}
+                >
+                  💋
+                </div>
+              ))}
             </div>
 
             <div style={{ marginTop: 24, textAlign: "center" }}>
@@ -93,7 +86,7 @@ export async function GET(
                 Kisses for {gift.recipient_name}
               </div>
               <div style={{ fontSize: 20, color: "#6b7280" }}>
-                From {gift.sender_name}
+                From {gift.sender_name || "Someone special"}
               </div>
             </div>
           </div>

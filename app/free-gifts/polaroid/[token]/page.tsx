@@ -6,18 +6,6 @@ import { motion } from "framer-motion";
 import { Navigation } from "@/components/navigation";
 import { FloatingElements } from "@/components/floating-elements";
 import { Heart, RotateCcw, Share2, Copy } from "lucide-react";
-import { generateGiftMetadata } from "@/lib/og-metadata";
-
-export async function generateMetadata({
-  params,
-}: {
-  params: { token: string };
-}) {
-  return generateGiftMetadata({
-    token: params.token,
-    giftType: "polaroid",
-  });
-}
 
 type GiftData = {
   gift_type: string;

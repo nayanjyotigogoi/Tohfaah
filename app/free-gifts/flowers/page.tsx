@@ -70,14 +70,23 @@ export default function FlowersGiftPage() {
       if (!res.ok) throw new Error();
 
       const data = await res.json();
+
+      /* 🔥 Warm OG preview */
+      fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL}/api/og/flowers/${data.token}`
+      ).catch(() => {});
+
+      /* Continue normal UI flow */
       setShareToken(data.token);
       setStep("preview");
+
     } catch {
       alert("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleReset = () => {
     setStep("create");

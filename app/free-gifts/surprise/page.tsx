@@ -61,45 +61,52 @@ export default function SurprisePage() {
 
   /* ================= CREATE → BACKEND ================= */
 
-  const createMoment = async () => {
-    const authToken =
-      typeof window !== "undefined"
-        ? localStorage.getItem("auth_token")
-        : null;
+const createMoment = async () => {
+  const authToken =
+    typeof window !== "undefined"
+      ? localStorage.getItem("auth_token")
+      : null;
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(authToken
-            ? { Authorization: `Bearer ${authToken}` }
-            : {}),
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(authToken
+          ? { Authorization: `Bearer ${authToken}` }
+          : {}),
+      },
+      body: JSON.stringify({
+        gift_type: "moment",
+        recipient_name: memory.receiver,
+        sender_name: memory.sender,
+        gift_data: {
+          title: memory.title,
+          message: memory.message,
+          date: memory.date,
+          time: memory.time || null,
         },
-        body: JSON.stringify({
-          gift_type: "moment",
-          recipient_name: memory.receiver,
-          sender_name: memory.sender,
-          gift_data: {
-            title: memory.title,
-            message: memory.message,
-            date: memory.date,
-            time: memory.time || null,
-          },
-        }),
-      }
-    );
-
-    if (!res.ok) {
-      alert("Failed to create moment");
-      return;
+      }),
     }
+  );
 
-    const data = await res.json();
-    setToken(data.token);
-    setStage("preview");
-  };
+  if (!res.ok) {
+    alert("Failed to create moment");
+    return;
+  }
+
+  const data = await res.json();
+
+  /* 🔥 Warm OG preview */
+  fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/og/surprise/${data.token}`
+  ).catch(() => {});
+
+  setToken(data.token);
+  setStage("preview");
+};
+
 
   /* ================= COUNTDOWN ================= */
 

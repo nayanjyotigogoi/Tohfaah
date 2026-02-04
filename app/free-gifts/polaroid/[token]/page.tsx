@@ -6,6 +6,18 @@ import { motion } from "framer-motion";
 import { Navigation } from "@/components/navigation";
 import { FloatingElements } from "@/components/floating-elements";
 import { Heart, RotateCcw, Share2, Copy } from "lucide-react";
+import { generateGiftMetadata } from "@/lib/og-metadata";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { token: string };
+}) {
+  return generateGiftMetadata({
+    token: params.token,
+    giftType: "polaroid",
+  });
+}
 
 type GiftData = {
   gift_type: string;
@@ -161,11 +173,14 @@ export default function PublicPolaroidPage() {
               >
                 {/* ✅ FIXED: portrait container */}
                 <div className="w-64 md:w-80 aspect-[3/4] overflow-hidden">
-                  <img
-                    src={imageSrc}
-                    alt="Polaroid memory"
-                    className="w-full h-full object-cover"
-                  />
+                  {imageSrc && (
+                    <img
+                      src={imageSrc}
+                      alt="Polaroid memory"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+
                 </div>
 
                 <p className="absolute bottom-4 left-0 right-0 text-center text-gray-500 text-sm">
@@ -185,7 +200,7 @@ export default function PublicPolaroidPage() {
                 <div className="w-64 md:w-80 aspect-[3/4] flex flex-col items-center justify-center text-center">
                   <Heart className="w-8 h-8 text-primary fill-primary mb-4" />
                   <p className="text-foreground text-lg leading-relaxed whitespace-pre-wrap">
-                    {gift.gift_data.message || "You are loved."}
+                    {gift.gift_data?.message ?? "You are loved."}
                   </p>
 
                   {gift.sender_name && (

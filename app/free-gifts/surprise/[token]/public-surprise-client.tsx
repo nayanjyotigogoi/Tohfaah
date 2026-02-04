@@ -168,6 +168,38 @@ export default function PublicSurpriseClient({
             </p>
           </div>
 
+          {/* ================= SHARE ================= */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleShare}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition"
+              >
+                <Share2 className="w-4 h-4" />
+                Share Surprise
+              </button>
+
+              <button
+                onClick={handleCopy}
+                className="p-3 rounded-full border border-border hover:bg-muted transition"
+                aria-label="Copy link"
+              >
+                {copied ? (
+                  <Check className="w-4 h-4 text-green-600" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+
+            {copied && (
+              <p className="text-xs text-muted-foreground">
+                Link copied — share the surprise 💖
+              </p>
+            )}
+          </div>
+
+
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}

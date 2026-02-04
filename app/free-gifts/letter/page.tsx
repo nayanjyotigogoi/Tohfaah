@@ -24,15 +24,15 @@ type Stage = "create" | "experience" | "share";
 /* ---------------- PAPER CONFIG ---------------- */
 const PAPER_STYLES = [
   { id: "classic", src: "/letters/paper-1.jpg", aspect: "3/4", maxHeight: 520, padding: { x: 12, y: 14 } },
-  { id: "scallop", src: "/letters/paper-2.jpg", aspect: "3/4", maxHeight: 520, padding: { x: 14, y: 16 } },
-  { id: "vintage", src: "/letters/paper-3.jpg", aspect: "3/4", maxHeight: 560, padding: { x: 13, y: 18 } },
-  { id: "rose", src: "/letters/paper-4.jpg", aspect: "3/4", maxHeight: 540, padding: { x: 12, y: 16 } },
+  { id: "scallop", src: "/letters/paper-2.jpg", aspect: "3/4", maxHeight: 520, padding: { x: 14, y: 15 } },
+  { id: "vintage", src: "/letters/paper-3.jpg", aspect: "3/4", maxHeight: 560, padding: { x: 13, y: 14 } },
+  { id: "rose", src: "/letters/paper-4.jpg", aspect: "3/4", maxHeight: 540, padding: { x: 12, y: 15 } },
   { id: "cream", src: "/letters/paper-5.jpg", aspect: "3/4", maxHeight: 500, padding: { x: 11, y: 15 } },
-  { id: "parchment", src: "/letters/paper-6.jpg", aspect: "3/4", maxHeight: 560, padding: { x: 15, y: 18 } },
+  { id: "parchment", src: "/letters/paper-6.jpg", aspect: "3/4", maxHeight: 560, padding: { x: 15, y: 15 } },
   { id: "love", src: "/letters/paper-7.jpg", aspect: "3/4", maxHeight: 520, padding: { x: 12, y: 17 } },
   { id: "minimal", src: "/letters/paper-8.jpg", aspect: "3/4", maxHeight: 500, padding: { x: 10, y: 12 } },
-  { id: "elegant", src: "/letters/paper-9.jpg", aspect: "3/4", maxHeight: 560, padding: { x: 14, y: 18 } },
-  { id: "valentine", src: "/letters/paper-10.jpg", aspect: "3/4", maxHeight: 520, padding: { x: 13, y: 16 } },
+  { id: "elegant", src: "/letters/paper-9.jpg", aspect: "3/4", maxHeight: 560, padding: { x: 14, y: 15 } },
+  { id: "valentine", src: "/letters/paper-10.jpg", aspect: "3/4", maxHeight: 520, padding: { x: 13, y: 15 } },
 ];
 
 const MAX_CHARS = 260;

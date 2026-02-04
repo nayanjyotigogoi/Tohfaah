@@ -67,58 +67,66 @@ export default function BalloonsPage() {
   };
 
   /* ================= CREATE ================= */
-  const startExperience = async () => {
-    if (!recipientName || !senderName) return;
-    setLoading(true);
+const startExperience = async () => {
+  if (!recipientName || !senderName) return;
+  setLoading(true);
 
-    try {
-      const authToken =
-        typeof window !== "undefined"
-          ? localStorage.getItem("auth_token")
-          : null;
+  try {
+    const authToken =
+      typeof window !== "undefined"
+        ? localStorage.getItem("auth_token")
+        : null;
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(authToken
-              ? { Authorization: `Bearer ${authToken}` }
-              : {}),
-          },
-          body: JSON.stringify({
-            gift_type: "balloons",
-            recipient_name: recipientName,
-            sender_name: senderName,
-            gift_data: { messages: messages.filter(Boolean) },
-          }),
-        }
-      );
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(authToken
+            ? { Authorization: `Bearer ${authToken}` }
+            : {}),
+        },
+        body: JSON.stringify({
+          gift_type: "balloons",
+          recipient_name: recipientName,
+          sender_name: senderName,
+          gift_data: { messages: messages.filter(Boolean) },
+        }),
+      }
+    );
 
-      if (!res.ok) throw new Error();
+    if (!res.ok) throw new Error();
 
-      const data = await res.json();
-      setShareToken(data.token);
+    const data = await res.json();
 
-      const generated = messages
-        .filter(Boolean)
-        .map((msg, i) => ({
-          id: i,
-          message: msg,
-          popped: false,
-          delay: i * 0.15,
-          x: 10 + Math.random() * 80,
-          y: 15 + Math.random() * 70,
-          color: balloonColors[i % balloonColors.length],
-        }));
+    /* 🔥 Warm OG preview */
+    fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/og/balloons/${data.token}`
+    ).catch(() => {});
 
-      setBalloons(generated);
-      setStage("experience");
-    } finally {
-      setLoading(false);
-    }
-  };
+    setShareToken(data.token);
+
+    const generated = messages
+      .filter(Boolean)
+      .map((msg, i) => ({
+        id: i,
+        message: msg,
+        popped: false,
+        delay: i * 0.15,
+        x: 10 + Math.random() * 80,
+        y: 15 + Math.random() * 70,
+        color: balloonColors[i % balloonColors.length],
+      }));
+
+    setBalloons(generated);
+    setStage("experience");
+
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   /* ================= POP ================= */
   const popBalloon = (id: number) => {

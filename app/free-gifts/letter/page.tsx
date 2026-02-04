@@ -79,7 +79,9 @@ export default function LoveLetterPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+          ...(authToken
+            ? { Authorization: `Bearer ${authToken}` }
+            : {}),
         },
         body: JSON.stringify({
           gift_type: "letter",
@@ -99,9 +101,17 @@ export default function LoveLetterPage() {
     }
 
     const data = await res.json();
+
+    /* 🔥 Warm OG preview */
+    fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/og/letter/${data.token}`
+    ).catch(() => {});
+
+    /* Continue normal flow */
     setShareToken(data.token);
     setStage("experience");
   };
+
 
   /* ---------------- TYPE EFFECT ---------------- */
   useEffect(() => {

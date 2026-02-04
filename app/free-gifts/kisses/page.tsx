@@ -69,50 +69,59 @@ export default function KissesGiftPage() {
   /* =======================
      CREATE (BACKEND)
   ======================= */
-  const handleCreate = async () => {
-    if (!recipientName || !senderName || kisses.length === 0) return;
+const handleCreate = async () => {
+  if (!recipientName || !senderName || kisses.length === 0) return;
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      const authToken =
-        typeof window !== "undefined"
-          ? localStorage.getItem("auth_token")
-          : null;
+  try {
+    const authToken =
+      typeof window !== "undefined"
+        ? localStorage.getItem("auth_token")
+        : null;
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(authToken
-              ? { Authorization: `Bearer ${authToken}` }
-              : {}),
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(authToken
+            ? { Authorization: `Bearer ${authToken}` }
+            : {}),
+        },
+        body: JSON.stringify({
+          gift_type: "kisses",
+          recipient_name: recipientName,
+          sender_name: senderName,
+          gift_data: {
+            kisses,
           },
-          body: JSON.stringify({
-            gift_type: "kisses",
-            recipient_name: recipientName,
-            sender_name: senderName,
-            gift_data: {
-              kisses,
-            },
-          }),
-        }
-      );
+        }),
+      }
+    );
 
-      if (!res.ok) throw new Error("Failed to create kiss gift");
+    if (!res.ok) throw new Error("Failed to create kiss gift");
 
-      const data = await res.json();
-      setShareToken(data.token);
-      setStep("preview");
-    } catch (e) {
-      console.error(e);
-      alert("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const data = await res.json();
+
+    /* 🔥 Warm OG preview */
+    fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/og/kisses/${data.token}`
+    ).catch(() => {});
+
+    /* Continue normal flow */
+    setShareToken(data.token);
+    setStep("preview");
+
+  } catch (e) {
+    console.error(e);
+    alert("Something went wrong. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleShare = () => setStep("share");
 

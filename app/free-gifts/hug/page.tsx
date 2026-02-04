@@ -67,8 +67,16 @@ export default function HugGiftPage() {
       if (!res.ok) throw new Error("Failed to create hug");
 
       const data = await res.json();
+
+      /* 🔥 Warm OG preview */
+      fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL}/api/og/hug/${data.token}`
+      ).catch(() => {});
+
+      /* Continue UI flow */
       setShareToken(data.token);
       setStep("preview");
+
     } catch (e) {
       console.error(e);
       alert("Something went wrong. Please try again.");

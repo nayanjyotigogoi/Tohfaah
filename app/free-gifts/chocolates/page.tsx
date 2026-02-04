@@ -43,44 +43,53 @@ export default function ChocolatesPage() {
   const [copied, setCopied] = useState(false);
 
   /* ================= CREATE (BACKEND) ================= */
-  const handleCreate = async () => {
-    if (!recipientName || !senderName) return;
-    setLoading(true);
+const handleCreate = async () => {
+  if (!recipientName || !senderName) return;
+  setLoading(true);
 
-    try {
-      const authToken =
-        typeof window !== "undefined"
-          ? localStorage.getItem("auth_token")
-          : null;
+  try {
+    const authToken =
+      typeof window !== "undefined"
+        ? localStorage.getItem("auth_token")
+        : null;
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(authToken
-              ? { Authorization: `Bearer ${authToken}` }
-              : {}),
-          },
-          body: JSON.stringify({
-            gift_type: "chocolates",
-            recipient_name: recipientName,
-            sender_name: senderName,
-            gift_data: { messages },
-          }),
-        }
-      );
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(authToken
+            ? { Authorization: `Bearer ${authToken}` }
+            : {}),
+        },
+        body: JSON.stringify({
+          gift_type: "chocolates",
+          recipient_name: recipientName,
+          sender_name: senderName,
+          gift_data: { messages },
+        }),
+      }
+    );
 
-      if (!res.ok) throw new Error();
+    if (!res.ok) throw new Error();
 
-      const data = await res.json();
-      setShareToken(data.token);
-      setStage("experience");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const data = await res.json();
+
+    /* 🔥 Warm OG preview */
+    fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/og/chocolates/${data.token}`
+    ).catch(() => {});
+
+    /* Continue experience flow */
+    setShareToken(data.token);
+    setStage("experience");
+
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   /* ================= RESET ================= */
   const resetAll = () => {

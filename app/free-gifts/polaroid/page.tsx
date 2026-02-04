@@ -52,11 +52,14 @@ export default function PolaroidGiftPage() {
    * - public path → /images/polaroid/xxx.jfif
    */
   const imageSrc =
-    image?.startsWith("data:")
-      ? image
-      : image
-      ? `${process.env.NEXT_PUBLIC_API_URL}/${image.replace(/^public\//, "")}`
-      : null;
+  image?.startsWith("data:")
+    ? image
+    : image?.startsWith("http")
+    ? image
+    : image
+    ? `${process.env.NEXT_PUBLIC_API_URL}/${image.replace(/^public\//, "")}`
+    : null;
+
 
   const handleCopy = async () => {
     if (!shareToken) return;
@@ -141,11 +144,22 @@ export default function PolaroidGiftPage() {
 
       if (!res.ok) throw new Error();
 
-      const data = await res.json();
+    const data = await res.json();
 
-      setImage(data.image_path);
-      setShareToken(data.token);
-      setStep("preview");
+    /* ===============================
+      🔥 WARM OG ROUTE (ADD THIS)
+    ================================ */
+    fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/og/polaroid/${data.token}`
+    ).catch(() => {});
+
+    /* ===============================
+      EXISTING LOGIC
+    ================================ */
+    setImage(data.image_url);
+    setShareToken(data.token);
+    setStep("preview");
+
     } catch {
       setErrors({
         image: "Something went wrong while creating your polaroid.",

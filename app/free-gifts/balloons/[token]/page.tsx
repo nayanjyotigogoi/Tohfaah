@@ -3,9 +3,31 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Heart, Share2, Copy, Check } from "lucide-react";
+
+function firePartyPopper(x: number, y: number) {
+  const origin = { x: x / 100, y: y / 100 };
+  const colors = ["#ec4899", "#f43f5e", "#a855f7", "#f59e0b", "#22d3ee"];
+  confetti({
+    particleCount: 80,
+    spread: 90,
+    origin,
+    colors,
+  });
+  setTimeout(() => {
+    confetti({
+      particleCount: 40,
+      angle: 90,
+      spread: 360,
+      origin,
+      colors,
+      scalar: 1.2,
+    });
+  }, 80);
+}
 
 interface Balloon {
   id: number;
@@ -39,7 +61,11 @@ export default function PublicBalloonsPage() {
   const [recipient, setRecipient] = useState("");
   const [sender, setSender] = useState("");
   const [balloons, setBalloons] = useState<Balloon[]>([]);
-  const [activeMessage, setActiveMessage] = useState<string | null>(null);
+  const [activeMessage, setActiveMessage] = useState<{
+    message: string;
+    x: number;
+    y: number;
+  } | null>(null);
   const [copied, setCopied] = useState(false);
 
   const shareUrl =
@@ -96,16 +122,20 @@ export default function PublicBalloonsPage() {
 
   /* ================= POP ================= */
   const popBalloon = (id: number) => {
-    setBalloons((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, popped: true } : b))
-    );
-
     const balloon = balloons.find((b) => b.id === id);
     if (balloon) {
       popSound.current?.play().catch(() => {});
-      setActiveMessage(balloon.message);
-      setTimeout(() => setActiveMessage(null), 2200);
+      firePartyPopper(balloon.x, balloon.y);
+      setActiveMessage({
+        message: balloon.message,
+        x: balloon.x,
+        y: balloon.y,
+      });
+      setTimeout(() => setActiveMessage(null), 2600);
     }
+    setBalloons((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, popped: true } : b))
+    );
   };
 
   /* ================= SHARE ================= */
@@ -161,11 +191,10 @@ export default function PublicBalloonsPage() {
 
       {/* BALLOONS */}
       <div className="absolute inset-0">
-        {balloons.map(
-          (balloon) =>
-            !balloon.popped && (
+        {balloons.map((balloon) => (
+          <AnimatePresence key={balloon.id}>
+            {!balloon.popped && (
               <motion.button
-                key={balloon.id}
                 className="absolute"
                 style={{ left: `${balloon.x}%`, top: `${balloon.y}%` }}
                 initial={{ scale: 0, y: 120 }}
@@ -173,6 +202,12 @@ export default function PublicBalloonsPage() {
                   scale: 1,
                   y: [0, -18, 0],
                   x: [0, 6, -6, 0],
+                }}
+                exit={{
+                  scale: [1, 1.6, 2.2],
+                  opacity: [1, 0.6, 0],
+                  filter: ["blur(0px)", "blur(2px)", "blur(6px)"],
+                  transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
                 }}
                 transition={{
                   scale: { delay: balloon.delay },
@@ -182,26 +217,40 @@ export default function PublicBalloonsPage() {
                 onClick={() => popBalloon(balloon.id)}
               >
                 <div
-                  className={`w-20 h-24 rounded-full bg-gradient-to-b ${balloon.color.bg} ${balloon.color.shadow}`}
+                  className={`w-20 h-24 rounded-full bg-gradient-to-b shadow-lg ${balloon.color.bg} ${balloon.color.shadow}`}
                   style={{
                     borderRadius: "50% 50% 50% 50% / 40% 40% 60% 60%",
                   }}
                 />
               </motion.button>
-            )
-        )}
+            )}
+          </AnimatePresence>
+        ))}
       </div>
 
-      {/* MESSAGE POP */}
+      {/* MESSAGE POP - at balloon position */}
       <AnimatePresence>
         {activeMessage && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white px-6 py-3 rounded-full shadow-xl z-50"
+            initial={{ opacity: 0, scale: 0.3, y: 20 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              transition: {
+                type: "spring",
+                stiffness: 400,
+                damping: 25,
+              },
+            }}
+            exit={{ opacity: 0, scale: 0.9, y: -10 }}
+            className="absolute z-50 -translate-x-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm px-5 py-3 rounded-2xl shadow-xl border border-white/50 min-w-[120px] max-w-[90vw] text-center"
+            style={{
+              left: `${activeMessage.x}%`,
+              top: `${activeMessage.y}%`,
+            }}
           >
-            <span className="font-medium">{activeMessage}</span>
+            <span className="text-sm font-medium block">{activeMessage.message}</span>
           </motion.div>
         )}
       </AnimatePresence>

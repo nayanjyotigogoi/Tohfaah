@@ -13,15 +13,15 @@ const dancing = Dancing_Script({ subsets: ["latin"] });
 /* ---------------- PAPER CONFIG ---------------- */
 const PAPER_STYLES = [
   { id: "classic", aspect: "3/4", maxHeight: 520, padding: { x: 12, y: 14 }, src: "/letters/paper-1.jpg" },
-  { id: "scallop", aspect: "3/4", maxHeight: 520, padding: { x: 14, y: 16 }, src: "/letters/paper-2.jpg" },
-  { id: "vintage", aspect: "3/4", maxHeight: 560, padding: { x: 13, y: 18 }, src: "/letters/paper-3.jpg" },
-  { id: "rose", aspect: "3/4", maxHeight: 540, padding: { x: 12, y: 16 }, src: "/letters/paper-4.jpg" },
-  { id: "cream", aspect: "3/4", maxHeight: 500, padding: { x: 11, y: 15 }, src: "/letters/paper-5.jpg" },
-  { id: "parchment", aspect: "3/5", maxHeight: 560, padding: { x: 15, y: 18 }, src: "/letters/paper-6.jpg" },
+  { id: "scallop", aspect: "3/4", maxHeight: 520, padding: { x: 12, y: 14 }, src: "/letters/paper-2.jpg" },
+  { id: "vintage", aspect: "3/4", maxHeight: 560, padding: { x: 12, y: 14 }, src: "/letters/paper-3.jpg" },
+  { id: "rose", aspect: "3/4", maxHeight: 540, padding: { x: 12, y: 14 }, src: "/letters/paper-4.jpg" },
+  { id: "cream", aspect: "3/4", maxHeight: 500, padding: { x: 12, y: 15 }, src: "/letters/paper-5.jpg" },
+  { id: "parchment", aspect: "3/5", maxHeight: 560, padding: { x: 12, y: 14 }, src: "/letters/paper-6.jpg" },
   { id: "love", aspect: "3/4", maxHeight: 520, padding: { x: 12, y: 17 }, src: "/letters/paper-7.jpg" },
-  { id: "minimal", aspect: "3/4", maxHeight: 500, padding: { x: 10, y: 12 }, src: "/letters/paper-8.jpg" },
-  { id: "elegant", aspect: "3/4", maxHeight: 560, padding: { x: 14, y: 18 }, src: "/letters/paper-9.jpg" },
-  { id: "valentine", aspect: "3/4", maxHeight: 520, padding: { x: 13, y: 16 }, src: "/letters/paper-10.jpg" },
+  { id: "minimal", aspect: "3/4", maxHeight: 500, padding: { x: 12, y: 14 }, src: "/letters/paper-8.jpg" },
+  { id: "elegant", aspect: "3/4", maxHeight: 560, padding: { x: 12, y: 14 }, src: "/letters/paper-9.jpg" },
+  { id: "valentine", aspect: "3/4", maxHeight: 520, padding: { x: 12, y: 14 }, src: "/letters/paper-10.jpg" },
 ];
 
 type GiftResponse = {

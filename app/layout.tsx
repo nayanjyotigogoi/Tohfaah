@@ -50,7 +50,7 @@ export const metadata: Metadata = {
   },
 
   verification: {
-    google: "1zetJeVvtRHcEp70BQcX0FAVwYfPGQrFvc9G6UEJN4M",
+    google: "adqhWZL-FJmawbjRZNZ8bVN_YezYDVWJ6eHEQp-l0xI",
   },
 
   /* 🌍 Open Graph (WhatsApp, Facebook, LinkedIn) */

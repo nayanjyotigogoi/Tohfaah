@@ -49,6 +49,10 @@ export const metadata: Metadata = {
     follow: true,
   },
 
+  verification: {
+    google: "1zetJeVvtRHcEp70BQcX0FAVwYfPGQrFvc9G6UEJN4M",
+  },
+
   /* 🌍 Open Graph (WhatsApp, Facebook, LinkedIn) */
   openGraph: {
     type: "website",

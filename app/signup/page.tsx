@@ -21,7 +21,6 @@ export default function SignupPage() {
     e.preventDefault();
     setError(null);
 
-    // Basic required validation
     if (!name || !email || !password || !confirmPassword) {
       setError("All fields are required.");
       return;

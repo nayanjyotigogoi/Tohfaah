@@ -21,8 +21,34 @@ export default function SignupPage() {
     e.preventDefault();
     setError(null);
 
+    if (!name || !email || !password || !confirmPassword) {
+      setError("All fields are required.");
+      return;
+    }
+
     if (!termsAccepted) {
       setError("You must accept the Terms & Privacy Policy.");
+      return;
+    }
+
+    // Password rules:
+    // - Minimum 8 characters
+    // - At least 1 uppercase
+    // - At least 1 lowercase
+    // - At least 1 number
+    // - At least 1 special character
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
+    if (!passwordRegex.test(password)) {
+      setError(
+        "Password must be 8+ characters and include uppercase, lowercase, number, and special character."
+      );
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
       return;
     }
 
@@ -46,19 +72,22 @@ export default function SignupPage() {
         }
       );
 
-      const data = await res.json();
+      let data: any = null;
 
-      if (!res.ok) {
-        throw new Error(data.message || "Signup failed");
+      try {
+        data = await res.json();
+      } catch {
+        // If backend returns non-JSON (prevents CORS-like crash)
+        throw new Error("Server error. Please try again.");
       }
 
-      /**
-       * REGISTER DOES NOT ISSUE TOKEN
-       * → Redirect user to login page
-       */
+      if (!res.ok) {
+        throw new Error(data?.message || "Signup failed.");
+      }
+
       window.location.href = data.redirect || "/login";
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }

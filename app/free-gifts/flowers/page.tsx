@@ -180,7 +180,7 @@ export default function FlowersGiftPage() {
                 <Textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Add a note (optional)"
+                  placeholder="Add a note"
                   rows={2}
                 />
 

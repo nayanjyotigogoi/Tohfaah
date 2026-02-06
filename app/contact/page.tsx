@@ -200,7 +200,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="text-foreground font-medium">Email</p>
-                      <p className="text-muted-foreground">hello@tohfaah.com</p>
+                      <p className="text-muted-foreground">support@tohfaah.online</p>
                     </div>
                   </div>
                 </div>

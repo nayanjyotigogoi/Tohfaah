@@ -4,6 +4,8 @@ import { Cormorant_Garamond, Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
+import FeedbackProvider from "@/components/global/FeedbackProvider";
+
 /* Fonts */
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -119,6 +121,7 @@ export default function RootLayout({
         className={`${cormorant.variable} ${inter.variable} font-sans antialiased`}
       >
         {children}
+        <FeedbackProvider />
         <Analytics />
       </body>
     </html>

@@ -34,10 +34,10 @@ const values = [
 ];
 
 const stats = [
-  { value: "50K+", label: "Experiences Created" },
-  { value: "120+", label: "Countries Reached" },
-  { value: "98%", label: "Said Yes to Proposals" },
-  { value: "1M+", label: "Hearts Touched" },
+  { value: "10K+", label: "Experiences Created" },
+  { value: "5+", label: "Countries Reached" },
+  { value: "99.9%", label: "Said Yes to Proposals" },
+  { value: "20K+", label: "Hearts Touched" },
 ];
 
 export default function AboutPage() {

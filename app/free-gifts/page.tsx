@@ -22,10 +22,10 @@ const freeGifts = [
   {
     icon: Camera,
     title: "Photograph Polaroid",
-    description: "Upload a photo, add a message, and watch it reveal like a polaroid memory",
+    description: "Upload a photo, add a message, and Tap it reveal see the message",
     color: "from-rose-100 to-pink-100",
     href: "/free-gifts/polaroid",
-    preview: "Shake to reveal",
+    preview: "Tap to reveal it",
   },
   {
     icon: Heart,
@@ -46,18 +46,18 @@ const freeGifts = [
   {
     icon: Candy,
     title: "Chocolates",
-    description: "Unwrap sweet chocolate surprises with delightful animations",
+    description: "Tap on the sweet chocolate surprises to reveal what your loved one has sent.",
     color: "from-amber-100 to-orange-50",
     href: "/free-gifts/chocolates",
-    preview: "Click to unwrap",
+    preview: "Click to see",
   },
   {
     icon: Flower2,
     title: "Flowers",
-    description: "Send a beautiful bouquet with floating petals",
+    description: "Send a beautiful bouquet to your loved one",
     color: "from-rose-100 to-pink-50",
     href: "/free-gifts/flowers",
-    preview: "Watch petals fall",
+    preview: "Send now",
   },
   {
     icon: MessageCircleHeart,

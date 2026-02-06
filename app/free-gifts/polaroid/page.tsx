@@ -290,7 +290,7 @@ export default function PolaroidGiftPage() {
                   <Textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Hidden message (optional)"
+                    placeholder="Write your feelings here"
                     rows={3}
                     className="text-lg"
                   />

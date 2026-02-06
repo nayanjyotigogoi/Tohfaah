@@ -138,7 +138,7 @@ export default function FeedbackProvider() {
 
               <div className="space-y-3">
                 <a
-                  href="mailto:tohfaah.online@gmail.com"
+                  href="mailto:support@tohfaah.online"
                   onClick={() => setShowModal(false)}
                   className="block w-full text-center py-3 rounded-xl 
                   bg-gradient-to-r from-pink-500 to-rose-500 

@@ -21,8 +21,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const dashboardLinks = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/gifts", label: "My Gifts", icon: Gift },
+  { href: "/", label: "Home", icon: Heart },
+  // { href: "/dashboard/gifts", label: "Sent Gifts", icon: Gift },
 ];
 
 export function DashboardNavigation({ user }: { user: any }) {
@@ -65,10 +65,15 @@ const handleLogout = async () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2">
+          <Link
+            href="/"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2"
+          >
             <Heart className="h-7 w-7 text-primary fill-primary" />
             <span className="text-xl font-semibold">Tohfaah</span>
           </Link>
+
 
           {/* Dashboard Links */}
           <div className="hidden md:flex items-center gap-6">
@@ -115,14 +120,14 @@ const handleLogout = async () => {
                 </p>
               </div>
 
-              <DropdownMenuSeparator />
+              {/* <DropdownMenuSeparator /> */}
 
-              <DropdownMenuItem asChild>
+              {/* <DropdownMenuItem asChild>
                 <Link href="/dashboard/settings" className="flex items-center">
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </Link>
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
 
               <DropdownMenuSeparator />
 

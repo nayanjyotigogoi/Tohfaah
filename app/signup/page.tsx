@@ -129,11 +129,11 @@ export default function SignupPage() {
               />
               <span>
                 I agree to the{" "}
-                <Link href="/terms" className="text-primary underline">
+                <Link href="/legal/terms-of-service" className="text-primary underline">
                   Terms
                 </Link>{" "}
                 and{" "}
-                <Link href="/privacy" className="text-primary underline">
+                <Link href="/legal/privacy-policy" className="text-primary underline">
                   Privacy Policy
                 </Link>
               </span>

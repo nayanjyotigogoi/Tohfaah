@@ -16,9 +16,9 @@ import {
 } from "lucide-react";
 
 const premiumFeatures = [
-  { icon: MessageSquare, label: "Love Letters" },
-  { icon: ImageIcon, label: "Photo Galleries" },
-  { icon: MapPin, label: "Map Connections" },
+  { icon: MessageSquare, label: "Word of Love" },
+  { icon: ImageIcon, label: "Polaroid Memory" },
+  { icon: MapPin, label: "Heart Connections" },
   { icon: Ticket, label: "Date Proposals" },
 ];
 
@@ -26,7 +26,15 @@ export function PremiumSection() {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
 
   // 🔹 ADD ONLY: replace later with real auth (useSession / Clerk / Supabase)
-  const isLoggedIn = false;
+const handleUnlock = () => {
+  const token = localStorage.getItem("auth_token");
+
+  if (token) {
+    window.location.href = "/premium-gifts";
+  } else {
+    window.location.href = "/login";
+  }
+};
 
   return (
     <section className="py-24 md:py-32 relative overflow-hidden">
@@ -81,15 +89,14 @@ export function PremiumSection() {
               ))}
             </div>
 
-            <Link href="/coming-soon">
-              <Button
-                size="lg"
-                className="text-lg px-8 py-6 bg-white hover:bg-rose-50 text-rose-950 shadow-xl"
-              >
-                <Sparkles className="w-5 h-5 mr-2" />
-                Start Creating
-              </Button>
-            </Link>
+            <Button
+              onClick={handleUnlock}
+              className="bg-white text-rose-700 hover:bg-rose-50 shadow-lg"
+            >
+              Unlock Now
+            </Button>
+
+
           </motion.div>
 
           {/* Right Preview */}
@@ -135,11 +142,15 @@ export function PremiumSection() {
                 </p>
 
                 {/* 🔹 ADD ONLY: Unlock Button */}
-                <Link href={isLoggedIn ? "/premium-gift" : "/login"}>
-                  <Button className="bg-white text-rose-700 hover:bg-rose-50 shadow-lg">
+                
+                  <Button
+                    onClick={handleUnlock}
+                    className="bg-white text-rose-700 hover:bg-rose-50 shadow-lg"
+                  >
                     Unlock Now
                   </Button>
-                </Link>
+
+                
               </div>
 
               {/* Floating Play Button */}

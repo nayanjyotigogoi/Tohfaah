@@ -97,27 +97,28 @@ export default function CarSection({ carDesign, senderName, recipientName }: Car
                 <div className="relative">
                   <Heart className="w-20 h-15 text-red-500 fill-red-500 drop-shadow-lg" />
                   <span
-  className="absolute inset-0 flex items-center justify-center text-white font-semibold px-3 text-center"
-  style={{
-    fontSize:
-      (recipientName?.length || 0) > 20
-        ? "7px"
-        : (recipientName?.length || 0) > 14
-        ? "8.5px"
-        : "10px",
-    lineHeight: "1.15",
-    maxWidth: "85%",
-    wordBreak: "break-word",
-    textShadow: "0 1px 2px rgba(0,0,0,0.25)",
-  }}
->
-  <span className="block text-[7px] opacity-80 mb-[1px]">
-    To
-  </span>
-  <span className="block">
-    {recipientName || "You"}
-  </span>
-</span>
+                    className="absolute inset-0 flex items-center justify-center text-white font-semibold px-3 text-center"
+                    style={{
+                      fontSize:
+                        (recipientName?.length || 0) > 20
+                          ? "7px"
+                          : (recipientName?.length || 0) > 14
+                          ? "8.5px"
+                          : "10px",
+                      lineHeight: "1.15",
+                      maxWidth: "95%",
+                      wordBreak: "break-word",
+                      textShadow: "0 1px 2px rgba(0,0,0,0.25)",
+                    }}
+                  >
+                    <span className="block text-[7px] opacity-80 mb-[1px]">
+                      To {recipientName || "You"}
+                    </span>
+
+                    {/* <span className="block">
+                     
+                    </span> */}
+                  </span>
 
                 </div>
 

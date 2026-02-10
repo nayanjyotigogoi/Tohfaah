@@ -23,7 +23,7 @@ const premiumGifts = [
       "A cinematic romantic journey with animations, puzzles and unforgettable reveals.",
     color: "from-rose-100 to-pink-100",
     href: "/premium-gifts/valentine/create",
-    price: "₹299",
+    price: "₹199",
     originalPrice: "₹599",
     // badge: "Popular",
   },

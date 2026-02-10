@@ -20,7 +20,6 @@ export default function AskOutSection({
   selectedDate,
   noMessages: configNoMessages,
 }: AskOutSectionProps) {
-
   const [noAttempts, setNoAttempts] = useState(0)
   const [saidYes, setSaidYes] = useState(false)
   const [noPosition, setNoPosition] = useState({ x: 0, y: 0 })
@@ -74,7 +73,6 @@ export default function AskOutSection({
     return (
       <section className="min-h-screen flex items-center justify-center bg-pink-100 px-4 relative overflow-hidden">
 
-        {/* ORIGINAL CONFETTI */}
         {confetti.map((c) => (
           <div
             key={c.id}
@@ -88,99 +86,96 @@ export default function AskOutSection({
           />
         ))}
 
-        {/* ORIGINAL FLOATING HEARTS */}
-        {Array.from({ length: 20 }).map((_, i) => (
-          <Heart
-            key={`celeb-${i}`}
-            className="absolute text-primary/30 animate-float"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              width: `${20 + Math.random() * 30}px`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${3 + Math.random() * 4}s`,
-            }}
-            fill="currentColor"
-          />
-        ))}
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-center gap-10 md:gap-16">
 
-        <div className="relative z-10 flex flex-col md:flex-row items-center justify-center gap-16">
+          <div className="text-center space-y-8">
+            <Heart className="w-24 md:w-28 h-24 md:h-28 mx-auto text-primary" fill="currentColor" />
 
-          {/* ORIGINAL CELEBRATION BLOCK (UNCHANGED) */}
-          <div className="text-center space-y-8 animate-celebration-burst">
-            <div className="animate-heart-burst">
-              <Heart className="w-28 h-28 mx-auto text-primary" fill="currentColor" />
-            </div>
-
-            <h2 className="font-display text-5xl md:text-7xl text-primary">
+            <h2 className="font-display text-4xl md:text-7xl text-primary">
               YES!
             </h2>
 
             <div className="space-y-3">
-              <p className="font-display text-2xl md:text-3xl text-foreground">
+              <p className="font-display text-xl md:text-3xl text-foreground">
                 {recipientName || "You"} said YES!
               </p>
 
-              <p className="text-muted-foreground text-lg max-w-md mx-auto">
+              <p className="text-muted-foreground text-base md:text-lg max-w-md mx-auto">
                 Get ready for {dateActivity || "an amazing time"} with{" "}
                 {senderName || "someone special"}!
               </p>
             </div>
           </div>
 
-          {/* TICKET WITH RETRO PIXEL FONT */}
-          <div
-            className="bg-pink-200 text-pink-900 p-8 w-[360px] shadow-xl"
-            style={{ fontFamily: '"Press Start 2P", monospace' }}
-          >
-            <p className="text-lg tracking-widest">
-              TICKET TO {selectedDate || "DATE"}
-            </p>
+          
+          {/* RESPONSIVE TICKET — DESKTOP UNCHANGED */}
+<div
+  className="
+    bg-pink-200 text-pink-900
+    px-4 py-4 md:p-8
+    border-2 border-pink-400
+    w-full max-w-[320px] md:w-[360px]
+    shadow-xl
+    rounded-md
+  "
+  style={{
+    fontFamily: '"Press Start 2P", monospace',
+  }}
+>
+  
+  <p className="text-xs md:text-lg tracking-widest text-center">
+    DATE TICKET - {dateActivity || "an amazing time"} with{" "}
+    {senderName || "someone special"}
+  </p>
 
-            <div className="mt-4 text-xs">
-              ==================================
-            </div>
+  <div className="mt-3 text-[9px] md:text-xs text-center">
+    =================================
+  </div>
 
-            <div className="mt-4 text-base">
-              Here is my ticket to our date! Can't wait to spend time together and make unforgettable memories. Get ready for a day filled with fun, laughter, and maybe even a little romance. See you soon! 💖:
-            </div>
+  <div className="mt-3 text-xs md:text-base">
+    {senderName || "Sender"} can't wait to take you
+     on a {dateActivity || "an amazing time"} date!
 
-            <div className="mt-4 text-base leading-relaxed min-h-[60px]">
-              {dateQuestion || "A beautiful date together."}
-            </div>
+  </div>
 
-            <div className="mt-4 text-xs">
-              ==================================
-            </div>
+  <div className="mt-3 text-xs md:text-base leading-relaxed">
+    Can't wait to make memories with you. ❤️
+  </div>
 
-            <div className="mt-4 text-xs text-center">
-              HAVE A WONDERFUL DATE
-            </div>
+  <div className="mt-3 text-[9px] md:text-xs text-center">
+    =================================
+  </div>
 
-            <div className="mt-4 h-12 bg-black relative overflow-hidden">
-              {Array.from({ length: 50 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute top-0 bottom-0 bg-white"
-                  style={{
-                    left: `${i * 2}%`,
-                    width: `${Math.random() > 0.5 ? 2 : 1}px`,
-                  }}
-                />
-              ))}
-            </div>
+  <div className="mt-3 text-[9px] md:text-xs text-center">
+    HAVE A WONDERFUL DATE
+  </div>
 
-            <div className="mt-3 text-[10px] tracking-widest text-center">
-              TOHFAAH
-            </div>
-          </div>
+  <div className="mt-3 h-8 md:h-12 bg-black relative overflow-hidden">
+    {Array.from({ length: 40 }).map((_, i) => (
+      <div
+        key={i}
+        className="absolute top-0 bottom-0 bg-white"
+        style={{
+          left: `${i * 2}%`,
+          width: `${Math.random() > 0.5 ? 2 : 1}px`,
+          animation: `ticket-scan 1s linear infinite`,
+          animationDelay: `${i * 100}ms`,
+        }}
+      />
+    ))}
+  </div>
+
+  <div className="mt-2 text-[7px] md:text-[10px] tracking-widest text-center">
+    Tohfaah || VALID FOR ONE USE ONLY
+  </div>
+</div>
 
         </div>
       </section>
     )
   }
 
-  /* DEFAULT STATE UNCHANGED */
+  /* DEFAULT STATE */
   return (
     <section className="min-h-screen flex items-center justify-center bg-pink-50 px-4 py-16 relative overflow-hidden">
       <div className="relative z-10 text-center space-y-10 max-w-lg mx-auto">

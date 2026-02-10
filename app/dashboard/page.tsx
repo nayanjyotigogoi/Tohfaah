@@ -16,6 +16,14 @@ import {
   Trash,
   Play,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 type Tab = "overview" | "free" | "paid" | "drafts" | "orders" | "settings";
 
@@ -405,6 +413,9 @@ function GiftCard({ gift, onCopyLink, copiedLink, onPlay }: any) {
 }
 
 function DraftCard({ gift, onDeleted }: any) {
+  const [deleting, setDeleting] = useState(false);
+  const [open, setOpen] = useState(false);
+
   const continueDraft = () => {
     window.location.href = `/premium-gifts/valentine/create?id=${gift.id}`;
   };
@@ -417,47 +428,99 @@ function DraftCard({ gift, onDeleted }: any) {
   };
 
   const deleteDraft = async () => {
-    const token = localStorage.getItem("auth_token");
+    try {
+      setDeleting(true);
 
-    await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/premium-gifts/${gift.id}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
+      const token = localStorage.getItem("auth_token");
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/premium-gifts/draft/${gift.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to delete draft.");
       }
-    );
 
-    onDeleted();
+      setOpen(false);
+      onDeleted();
+    } catch (err: any) {
+      console.error(err.message);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
-    <div className="flex items-center justify-between p-6 bg-card border border-border rounded-2xl">
-      <div>
-        <p className="font-medium">Draft for {gift.recipient}</p>
-        <p className="text-sm text-muted-foreground">
-          Last updated {gift.updated_at ?? "recently"}
-        </p>
+    <>
+      <div className="flex items-center justify-between p-6 bg-card border border-border rounded-2xl">
+        <div>
+          <p className="font-medium">Draft for {gift.recipient}</p>
+          <p className="text-sm text-muted-foreground">
+            Last updated {gift.updated_at ?? "recently"}
+          </p>
+        </div>
+
+        <div className="flex gap-2">
+          <Button variant="ghost" onClick={playDraft}>
+            <Play className="w-4 h-4" />
+          </Button>
+
+          <Button onClick={continueDraft}>
+            Continue
+          </Button>
+
+          <Button
+            variant="destructive"
+            onClick={() => setOpen(true)}
+          >
+            <Trash className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
-      <div className="flex gap-2">
-        <Button variant="ghost" onClick={playDraft}>
-          <Play className="w-4 h-4" />
-        </Button>
+      {/* 🔥 PROPER DELETE MODAL */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Draft?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. Your draft will be permanently deleted.
+            </DialogDescription>
+          </DialogHeader>
 
-        <Button onClick={continueDraft}>
-          Continue
-        </Button>
+          <DialogFooter className="mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
 
-        <Button variant="destructive" onClick={deleteDraft}>
-          <Trash className="w-4 h-4" />
-        </Button>
-      </div>
-    </div>
+            <Button
+              variant="destructive"
+              onClick={deleteDraft}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
+
+
 
 function OrderCard({ order }: any) {
   return (

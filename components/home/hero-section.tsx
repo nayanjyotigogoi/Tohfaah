@@ -93,7 +93,7 @@ export function HeroSection() {
             </Link>
 
             {/* Primary */}
-            <Link href="/coming-soon" onClick={triggerBurst}>
+            <Link href="/premium-gifts" onClick={triggerBurst}>
               <motion.div
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.97 }}

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { RotateCcw, Heart } from "lucide-react"
+import { RotateCcw, Heart, Plus,  } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import type { ValentineConfig } from "@/lib/valentine-types"
@@ -20,6 +20,7 @@ import {
   ForeverSection,
   FinalMessage,
 } from "./sections"
+
 
 interface ValentineDisplayProps {
   config: ValentineConfig
@@ -168,16 +169,42 @@ export function ValentineDisplay({ config }: ValentineDisplayProps) {
 
       {/* Create Button */}
       <button
-        onClick={() => router.push("/premium-gifts/valentine/create")}
-        className="fixed top-6 right-6 z-50 px-5 py-2.5 rounded-full 
-                   bg-gradient-to-r from-pink-500 to-rose-500 
-                   text-white text-sm shadow-xl 
-                   hover:scale-105 transition-all duration-300 
-                   flex items-center gap-2"
-      >
-        <RotateCcw className="w-4 h-4" />
-        Create Yours 💘
-      </button>
+  onClick={() => router.push("/premium-gifts/valentine/create")}
+  className="
+    fixed top-6 right-6 z-50
+    group
+    flex items-center
+    h-12
+    rounded-full
+    backdrop-blur-lg
+    bg-white/10
+    border border-white/20
+    shadow-lg
+    overflow-hidden
+    transition-all duration-500 ease-out
+    w-12 hover:w-44
+  "
+>
+  {/* Icon */}
+  <div className="flex items-center justify-center w-22 h-22 text-black">
+    <Plus className="w-12 h-16" />
+  </div>
+
+  {/* Expanding Text */}
+  <span
+    className="
+      whitespace-nowrap
+      text-black text-sm font-medium
+      opacity-0 group-hover:opacity-100
+      transition-all duration-300
+      pr-5
+    "
+  >
+    Create Yours 💘
+  </span>
+</button>
+
+
 
       {/* Playful Navigator Toggle */}
       <button

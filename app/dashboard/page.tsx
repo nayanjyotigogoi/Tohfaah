@@ -37,9 +37,6 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
-  /* =========================================================
-     LOAD DASHBOARD (TOKEN BASED)
-  ========================================================= */
   useEffect(() => {
     const loadDashboard = async () => {
       try {
@@ -75,14 +72,23 @@ export default function DashboardPage() {
     loadDashboard();
   }, []);
 
+  /* ================= COPY FULL URL ================= */
   const copyLink = (link: string) => {
-    navigator.clipboard.writeText(link);
-    setCopiedLink(link);
+    const fullUrl = link.startsWith("http")
+      ? link
+      : `${window.location.origin}${link}`;
+
+    navigator.clipboard.writeText(fullUrl);
+    setCopiedLink(fullUrl);
     setTimeout(() => setCopiedLink(null), 2000);
   };
 
   const playLink = (link: string) => {
-    window.open(link, "_blank");
+    const fullUrl = link.startsWith("http")
+      ? link
+      : `${window.location.origin}${link}`;
+
+    window.open(fullUrl, "_blank");
   };
 
   if (loading) {
@@ -107,7 +113,7 @@ export default function DashboardPage() {
       <div className="pt-24 pb-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
-          {/* Header */}
+          {/* HEADER */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div>
               <h1 className="text-3xl md:text-4xl font-light text-foreground">
@@ -117,6 +123,7 @@ export default function DashboardPage() {
                 Manage your gifts and experiences
               </p>
             </div>
+
             <div className="flex gap-3">
               <Link href="/free-gifts">
                 <Button variant="outline">
@@ -124,7 +131,8 @@ export default function DashboardPage() {
                   Free Gift
                 </Button>
               </Link>
-              <Link href="/coming-soon">
+
+              <Link href="/premium-gifts">
                 <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   <Sparkles className="w-4 h-4 mr-2" />
                   Premium Experience
@@ -133,7 +141,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Tabs */}
+          {/* TABS */}
           <div className="flex overflow-x-auto gap-2 mb-8 pb-2">
             {tabs.map((tab) => (
               <button
@@ -157,6 +165,7 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
           >
+
             {/* OVERVIEW */}
             {activeTab === "overview" && (
               <div className="space-y-8">
@@ -182,10 +191,12 @@ export default function DashboardPage() {
                           onPlay={() =>
                             item.status === "draft"
                               ? window.open(
-                                  `/gift/valentine/${item.id}?preview=1`,
+                                  `/premium-gifts/valentine/preview/${item.id}`,
                                   "_blank"
                                 )
-                              : playLink(item.link)
+                              : playLink(
+                                  `/premium-gifts/valentine/${item.share_token}`
+                                )
                           }
                         />
                       ))
@@ -210,14 +221,14 @@ export default function DashboardPage() {
                   <GiftCard
                     key={gift.id}
                     gift={gift}
-                    onCopyLink={copyLink}
+                    onCopyLink={() => copyLink(gift.link)}
                     copiedLink={copiedLink}
                     onPlay={() => playLink(gift.link)}
                   />
                 ))
               ))}
 
-            {/* PAID */}
+            {/* PREMIUM */}
             {activeTab === "paid" &&
               (paidPremium.length === 0 ? (
                 <EmptyState
@@ -225,16 +236,20 @@ export default function DashboardPage() {
                   title="No premium gifts yet"
                   description="Create a premium experience"
                   actionLabel="Create Experience"
-                  actionHref="/coming-soon"
+                  actionHref="/premium-gifts/valentine/create"
                 />
               ) : (
                 paidPremium.map((gift) => (
                   <GiftCard
                     key={gift.id}
                     gift={gift}
-                    onCopyLink={copyLink}
+                    onCopyLink={() =>
+                      copyLink(`/premium-gifts/valentine/${gift.share_token}`)
+                    }
                     copiedLink={copiedLink}
-                    onPlay={() => playLink(gift.link)}
+                    onPlay={() =>
+                      playLink(`/premium-gifts/valentine/${gift.share_token}`)
+                    }
                   />
                 ))
               ))}
@@ -247,7 +262,7 @@ export default function DashboardPage() {
                   title="No drafts"
                   description="Start creating to save drafts"
                   actionLabel="Create Experience"
-                  actionHref="/coming-soon"
+                  actionHref="/premium-gifts/valentine/create"
                 />
               ) : (
                 draftPremium.map((gift) => (
@@ -287,7 +302,6 @@ export default function DashboardPage() {
     </main>
   );
 }
-
 /* ================= COMPONENTS ================= */
 
 function StatCard({ icon: Icon, label, value }: any) {
@@ -302,7 +316,13 @@ function StatCard({ icon: Icon, label, value }: any) {
   );
 }
 
-function EmptyState({ icon: Icon, title, description, actionLabel, actionHref }: any) {
+function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  actionLabel,
+  actionHref,
+}: any) {
   return (
     <div className="text-center py-16 bg-secondary/30 rounded-2xl">
       <Icon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -324,12 +344,18 @@ function GiftRow({ gift, onCopy, copied, onPlay }: any) {
         </p>
         <p className="text-sm text-muted-foreground">{gift.date}</p>
       </div>
+
       <div className="flex gap-2">
         <Button size="sm" variant="ghost" onClick={onPlay}>
           <Play className="w-4 h-4" />
         </Button>
+
         {gift.link && (
-          <Button size="sm" variant="ghost" onClick={() => onCopy(gift.link)}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onCopy(gift.link)}
+          >
             {copied === gift.link ? "Copied!" : <Copy className="w-4 h-4" />}
           </Button>
         )}
@@ -339,21 +365,38 @@ function GiftRow({ gift, onCopy, copied, onPlay }: any) {
 }
 
 function GiftCard({ gift, onCopyLink, copiedLink, onPlay }: any) {
+  const link =
+    gift.share_token
+      ? `/premium-gifts/valentine/${gift.share_token}`
+      : gift.link;
+
+  const fullUrl = link
+    ? link.startsWith("http")
+      ? link
+      : `${typeof window !== "undefined" ? window.location.origin : ""}${link}`
+    : null;
+
   return (
     <div className="flex items-center justify-between p-6 bg-card border border-border rounded-2xl">
       <div>
         <p className="font-medium">
-          {gift.type} for {gift.recipient}
+          {gift.type ?? "Premium"} for {gift.recipient}
         </p>
         <p className="text-sm text-muted-foreground">{gift.date}</p>
       </div>
+
       <div className="flex gap-2">
         <Button size="sm" variant="ghost" onClick={onPlay}>
           <Play className="w-4 h-4" />
         </Button>
-        {gift.link && (
-          <Button size="sm" variant="ghost" onClick={() => onCopyLink(gift.link)}>
-            {copiedLink === gift.link ? "Copied!" : <Copy className="w-4 h-4" />}
+
+        {link && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onCopyLink(link)}
+          >
+            {copiedLink === fullUrl ? "Copied!" : <Copy className="w-4 h-4" />}
           </Button>
         )}
       </div>
@@ -363,12 +406,14 @@ function GiftCard({ gift, onCopyLink, copiedLink, onPlay }: any) {
 
 function DraftCard({ gift, onDeleted }: any) {
   const continueDraft = () => {
-    localStorage.setItem("resume_premium_draft_id", gift.id);
-    window.location.href = "/create";
+    window.location.href = `/premium-gifts/valentine/create?id=${gift.id}`;
   };
 
   const playDraft = () => {
-    window.open(`/gift/valentine/${gift.id}?preview=1`, "_blank");
+    window.open(
+      `/premium-gifts/valentine/preview/${gift.id}`,
+      "_blank"
+    );
   };
 
   const deleteDraft = async () => {
@@ -401,7 +446,11 @@ function DraftCard({ gift, onDeleted }: any) {
         <Button variant="ghost" onClick={playDraft}>
           <Play className="w-4 h-4" />
         </Button>
-        <Button onClick={continueDraft}>Continue</Button>
+
+        <Button onClick={continueDraft}>
+          Continue
+        </Button>
+
         <Button variant="destructive" onClick={deleteDraft}>
           <Trash className="w-4 h-4" />
         </Button>

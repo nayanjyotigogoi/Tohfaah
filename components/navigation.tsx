@@ -17,7 +17,7 @@ import {
 const navLinks = [
   { id: "home", href: "/", label: "Home" },
   { id: "free-gifts", href: "/free-gifts", label: "Free Gifts" },
-  { id: "create-experience", href: "/coming-soon", label: "Create Experience" },
+  { id: "create-experience", href: "/premium-gifts", label: "Create Experience" },
   { id: "shop", href: "/coming-soon", label: "Shop" },
   { id: "about", href: "/about", label: "About" },
 ];

@@ -253,10 +253,105 @@ export function ValentineBuilder() {
     }
   }
 
+  const validateStep = (): boolean => {
+    switch (step) {
+      case 1:
+        if (
+          !config.identity.senderName.trim() ||
+          !config.identity.recipientName.trim() ||
+          !config.identity.selectedDate
+        ) {
+          setError("Please fill names and select a date 💌")
+          return false
+        }
+        break
+
+      case 2:
+        if (config.visuals.loveLevel <= 0) {
+          setError("Set your love level ❤️")
+          return false
+        }
+        break
+
+      case 3:
+        if (
+          !config.puzzle.secretWord.trim() ||
+          !config.puzzle.hint.trim()
+        ) {
+          setError("Secret word and hint are required 🧩")
+          return false
+        }
+        break
+
+      case 4:
+        if (!photo1File || !photo2File) {
+          setError("Upload both photos 📸")
+          return false
+        }
+        break
+
+      case 5:
+        if (!config.visuals.carDesign) {
+          setError("Select a delivery car 🚗")
+          return false
+        }
+        break
+
+      case 6:
+        if (!config.message.heartToHeartMessage.trim()) {
+          setError("Write your heart message 💕")
+          return false
+        }
+        break
+
+      case 7:
+        if (
+          config.message.coupons.length === 0 ||
+          config.message.coupons.some(
+            (c) => !c.title.trim() || !c.subtitle.trim()
+          )
+        ) {
+          setError("All coupons must have title & subtitle 🎟️")
+          return false
+        }
+        break
+
+      case 9:
+        if (
+          !config.interaction.dateQuestion.trim() ||
+          !config.interaction.dateActivity.trim()
+        ) {
+          setError("Complete your date question 💖")
+          return false
+        }
+        break
+
+      case 10:
+        if (
+          !config.lock.question.trim() ||
+          !config.lock.answer.trim()
+        ) {
+          setError("Lock question and answer required 🔐")
+          return false
+        }
+        break
+
+      case 11:
+        if (!config.closing.foreverMessage.trim()) {
+          setError("Add your forever message 💍")
+          return false
+        }
+        break
+    }
+
+    setError(null)
+    return true
+  }
+
   return (
     <div className="min-h-screen bg-[hsl(var(--champagne))] flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
-<Navigation />
+      <Navigation />
        
        {/* Progress Bar */}
         <div className="mb-8">
@@ -686,7 +781,7 @@ export function ValentineBuilder() {
                 <p className="text-muted-foreground text-lg">A truck will arrive and dump all your love hearts</p>
               </div>
               <div className="flex justify-center">
-                <img src="/images/heart-truck.jpeg" alt="Heart truck preview" className="w-64 h-auto rounded-2xl shadow-lg" />
+                <img src="/heart-truck.PNG" alt="Heart truck preview" className="w-84 h-auto rounded-2xl shadow-lg" />
               </div>
               <p className="text-center text-muted-foreground">
                 This animated scene will show a red truck arriving and dumping a pile of hearts for {config.identity.recipientName || "your valentine"}.
@@ -720,7 +815,7 @@ export function ValentineBuilder() {
 
                 <p className="font-display text-xl text-foreground text-center italic mb-3">
                   {config.interaction.dateQuestion ||
-                    "Will you go on a date with me?"}
+                    "Will you go on a date with me? "}
                 </p>
 
                 <div className="flex justify-center gap-4">
@@ -755,7 +850,6 @@ export function ValentineBuilder() {
 
               
                 {/* Activity Selection */}
-                {/* Custom Activity Input */}
                 <div>
                   <Label className="text-lg font-display">
                     What kind of date are you planning?
@@ -772,7 +866,7 @@ export function ValentineBuilder() {
                         },
                       }))
                     }
-                    placeholder="e.g., Candlelight dinner, Goa trip, Movie night..."
+                    placeholder="e.g., Candlelight Dinner, Goa trip, Movie night..."
                     className="mt-2 text-lg h-12"
                   />
 
@@ -831,7 +925,7 @@ export function ValentineBuilder() {
                 />
 
                 <Input
-                  placeholder="Hint (optional)"
+                  placeholder="Hint (e.g. Our first date)" 
                   value={config.lock.hint}
                   onChange={(e) =>
                     setConfig((prev) => ({
@@ -863,7 +957,7 @@ export function ValentineBuilder() {
                     closing: { ...prev.closing, foreverMessage: e.target.value },
                   }))
                 }
-                placeholder="Our love is forever"
+                placeholder="Our love is forever (add your own romantic message here)"
                 className="text-center"
               />
             </div>
@@ -871,7 +965,6 @@ export function ValentineBuilder() {
 
 
           {/* Navigation */}
-                    {/* Navigation */}
           <div className="flex justify-between mt-10">
             <Button
               variant="outline"
@@ -883,7 +976,15 @@ export function ValentineBuilder() {
             </Button>
 
             {step < totalSteps ? (
-              <Button onClick={() => setStep((s) => s + 1)} disabled={loading}>
+              <Button
+                onClick={() => {
+                  if (validateStep()) {
+                    setStep((s) => s + 1)
+                  }
+                }}
+                disabled={loading}
+              >
+
                 Continue
                 <ChevronRight className="w-4 h-4" />
               </Button>

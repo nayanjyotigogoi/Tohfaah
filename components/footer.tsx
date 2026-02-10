@@ -10,7 +10,7 @@ const footerLinks = {
     {
       id: "premium-experiences",
       label: "Premium Experiences",
-      href: "/coming-soon",
+      href: "/premium-gifts",
     },
     { id: "shop", label: "Shop", href: "/coming-soon" },
   ],

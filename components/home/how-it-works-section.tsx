@@ -9,21 +9,21 @@ const steps = [
     icon: PenLine,
     title: "Pour your heart",
     description:
-      "Choose your experience type. Add photos, messages, memories, and moments that matter to you both.",
+      "Fill out a simple form with your special memories, inside jokes and future dreams. We'll weave them into a magical experience that's uniquely yours.",
   },
   {
     number: "02",
     icon: Wand2,
     title: "Watch it come alive",
     description:
-      "Your gift transforms into an interactive story with butterflies, reveals, and cinematic moments.",
+      "Our magic transforms your inputs into a beautiful, personalized experience filled with animations, puzzles and unforgettable reveals.",
   },
   {
     number: "03",
     icon: Share2,
     title: "Share the magic",
     description:
-      "Send a private link. They answer your secret question to unlock an unforgettable experience.",
+      "Send your experience to your loved one. Watch their joy as they explore the memories and surprises you created together.",
   },
 ];
 

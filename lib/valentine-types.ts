@@ -80,13 +80,13 @@ export const DEFAULT_CONFIG: ValentineConfig = {
 
   interaction: {
     dateQuestion: "Will you go on a date with me?",
-    dateActivity: "dinner",
+    dateActivity: "Dinner",
     noMessages: [],
     activityLabels: {},
   },
 
   closing: {
-    foreverMessage: "Our love is forever",
+    foreverMessage: "Add your own romantic message here",
   },
 }
 

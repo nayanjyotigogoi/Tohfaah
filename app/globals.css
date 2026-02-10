@@ -131,3 +131,112 @@
     @apply bg-background text-foreground;
   }
 }
+@keyframes ropeSway {
+  0%   { transform: translateY(0px) }
+  50%  { transform: translateY(3px) }
+  100% { transform: translateY(0px) }
+}
+@keyframes balloon-float {
+  0%, 100% { transform: translate(-50%, 0) translateY(0px); }
+  50% { transform: translate(-50%, 0) translateY(-12px); }
+}
+
+@keyframes balloon-launch {
+  0% { transform: translate(-50%, 0) translateY(0); opacity: 1; }
+  100% { transform: translate(-50%, -120vh); opacity: 0; }
+}
+
+@keyframes heart-float-up {
+  0% { transform: translateY(0) scale(0.8); opacity: 1; }
+  100% { transform: translateY(-120vh) scale(1.2); opacity: 0; }
+}
+
+.animate-balloon-float {
+  animation: balloon-float 4s ease-in-out infinite;
+}
+
+.animate-balloon-launch {
+  animation: balloon-launch 4s ease-in forwards;
+}
+
+.animate-heart-float-up {
+  animation: heart-float-up 4s ease-out forwards;
+}
+
+/* Hide scrollbar but keep scroll */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ========================= */
+/* 🎈 Balloon Animations     */
+/* ========================= */
+
+@keyframes balloonIdle {
+  0%, 100% { transform: translate(-50%, 0px); }
+  50% { transform: translate(-50%, -10px); }
+}
+
+@keyframes balloonRelease {
+  0% { transform: translate(-50%, 0); opacity: 1; }
+  100% { transform: translate(-50%, -120vh); opacity: 0; }
+}
+
+@keyframes heartRise {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-80vh); opacity: 0; }
+}
+
+@keyframes cloudDrift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(40px); }
+}
+
+@keyframes cloudDriftReverse {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-40px); }
+}
+
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Utility classes */
+
+.animate-balloon-idle {
+  animation: balloonIdle 4s ease-in-out infinite;
+}
+
+.animate-balloon-release {
+  animation: balloonRelease 3s ease-in forwards;
+}
+
+.animate-heart-rise {
+  animation: heartRise 4s ease-out forwards;
+}
+
+.animate-cloud-drift {
+  animation: cloudDrift 20s linear infinite;
+}
+
+.animate-cloud-drift-reverse {
+  animation: cloudDriftReverse 24s linear infinite;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease forwards;
+}
+
+.animate-sparkle {
+  animation: sparkle 3s ease-in-out infinite;
+}

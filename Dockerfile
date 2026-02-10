@@ -1,4 +1,4 @@
-# -------- Builder stage --------
+# ---------- Builder ----------
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -7,26 +7,27 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# Copy source code
+ENV NEXT_PUBLIC_API_URL=https://tohfaah.online
+ENV NEXT_PUBLIC_APP_URL=https://tohfaah.com
+
+# Copy source ( .dockerignore MUST exclude .next )
 COPY . .
 
-# Build Next.js app
-RUN npm run build
+# Force clean build
+RUN rm -rf .next && npm run build
 
 
-# -------- Production stage --------
+# ---------- Runner ----------
 FROM node:20-alpine AS runner
 
 WORKDIR /app
-
 ENV NODE_ENV=production
 
-# Copy required build output
+# Copy only what is needed to run Next.js
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.* ./
 
 EXPOSE 3000
 

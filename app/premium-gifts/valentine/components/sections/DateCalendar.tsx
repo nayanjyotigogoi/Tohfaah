@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { motion, useReducedMotion } from "framer-motion"
+import { motion, useReducedMotion, easeOut } from "framer-motion"
 import { Heart } from "lucide-react"
 
 interface DateCalendarProps {
@@ -59,7 +59,7 @@ export default function DateCalendar({ selectedDate }: DateCalendarProps) {
       y: 0,
       transition: {
         duration: 0.5,
-        ease: "easeOut",
+        ease: easeOut,
       },
     },
   }
@@ -74,7 +74,7 @@ export default function DateCalendar({ selectedDate }: DateCalendarProps) {
       y: 0,
       transition: {
         duration: 0.8,
-        ease: "easeOut",
+        ease: easeOut,
         delay,
       },
     }),

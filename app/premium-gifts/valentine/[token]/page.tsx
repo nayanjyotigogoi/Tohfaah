@@ -203,7 +203,14 @@ const recipientName = gift?.config?.identity?.recipientName || ""
   ========================== */
   return (
     <>
-      <ValentineDisplay config={gift!.config} onReset={() => {}} />
+      <ValentineDisplay
+  config={gift!.config}
+  onReset={() => {
+    localStorage.removeItem(`unlock_${token}`)
+    window.location.reload()
+  }}
+/>
+
 
       {/* Floating Mobile-Friendly Buttons */}
       <div className="fixed bottom-5 right-5 flex flex-col gap-3 z-50">

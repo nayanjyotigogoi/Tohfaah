@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import type { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
@@ -6,12 +7,14 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://tohfaah.online";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { token: string } }
+  request: NextRequest,
+  context: { params: Promise<{ token: string }> }
 ) {
   try {
+    const { token } = await context.params;
+
     const res = await fetch(
-      `${API_BASE_URL}/api/free-gifts/${params.token}`,
+      `${API_BASE_URL}/api/free-gifts/${token}`,
       {
         cache: "no-store",
         headers: { Accept: "application/json" },
@@ -22,7 +25,6 @@ export async function GET(
 
     const gift = await res.json();
 
-    // ✅ Validate gift type ONLY
     if (gift.gift_type !== "polaroid") {
       throw new Error("Invalid polaroid gift");
     }
@@ -34,7 +36,6 @@ export async function GET(
       gift.gift_data?.message?.slice(0, 120) ??
       "A memory made with love.";
 
-    // ✅ BACKEND RETURNS FULL IMAGE URL
     const imageUrl =
       gift.gift_data?.image_url ??
       "https://tohfaah.online/placeholder-polaroid.jpg";
@@ -52,7 +53,6 @@ export async function GET(
             fontFamily: "ui-sans-serif, system-ui",
           }}
         >
-          {/* POLAROID CARD */}
           <div
             style={{
               background: "#ffffff",
@@ -64,7 +64,6 @@ export async function GET(
               textAlign: "center",
             }}
           >
-            {/* IMAGE */}
             <img
               src={imageUrl}
               width={620}
@@ -77,7 +76,6 @@ export async function GET(
               }}
             />
 
-            {/* CAPTION */}
             <div
               style={{
                 marginTop: 28,
@@ -111,7 +109,6 @@ export async function GET(
             </div>
           </div>
 
-          {/* WATERMARK */}
           <div
             style={{
               position: "absolute",
@@ -130,11 +127,10 @@ export async function GET(
       ),
       {
         width: 1080,
-        height: 1350, // ✅ TRUE PORTRAIT
+        height: 1350,
       }
     );
   } catch {
-    // ✅ OG must NEVER crash
     return new ImageResponse(
       (
         <div

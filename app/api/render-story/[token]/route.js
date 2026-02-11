@@ -65,7 +65,7 @@ export async function GET(request, context) {
 
   try {
     const backendUrl =
-      process.env.LARAVEL_API_URL || "http://localhost:8000";
+      process.env.LARAVEL_API_URL || "https://tohfaah.online";
 
     const res = await fetch(
       `${backendUrl}/api/premium-gifts/view/${token}`,

@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import type { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
@@ -6,12 +7,14 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://tohfaah.online";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { token: string } }
+  request: NextRequest,
+  context: { params: Promise<{ token: string }> }
 ) {
   try {
+    const { token } = await context.params;
+
     const res = await fetch(
-      `${API_BASE_URL}/api/free-gifts/${params.token}`,
+      `${API_BASE_URL}/api/free-gifts/${token}`,
       { cache: "no-store" }
     );
 
@@ -19,7 +22,6 @@ export async function GET(
 
     const gift = await res.json();
 
-    // ✅ Validate letter gift
     if (gift.gift_type !== "letter") {
       throw new Error("Invalid letter gift");
     }
@@ -40,7 +42,6 @@ export async function GET(
             fontFamily: "serif",
           }}
         >
-          {/* LETTER CARD */}
           <div
             style={{
               background: "#ffffff",
@@ -52,7 +53,6 @@ export async function GET(
               textAlign: "center",
             }}
           >
-            {/* TITLE */}
             <div
               style={{
                 fontSize: 34,
@@ -63,7 +63,6 @@ export async function GET(
               A Letter for
             </div>
 
-            {/* RECIPIENT */}
             <div
               style={{
                 fontSize: 52,
@@ -75,7 +74,6 @@ export async function GET(
               {recipient}
             </div>
 
-            {/* DIVIDER */}
             <div
               style={{
                 width: 80,
@@ -85,7 +83,6 @@ export async function GET(
               }}
             />
 
-            {/* SENDER */}
             <div
               style={{
                 fontSize: 26,
@@ -97,7 +94,6 @@ export async function GET(
             </div>
           </div>
 
-          {/* WATERMARK */}
           <div
             style={{
               position: "absolute",
@@ -116,7 +112,7 @@ export async function GET(
       ),
       {
         width: 1080,
-        height: 1350, // ✅ TRUE PORTRAIT
+        height: 1350,
       }
     );
   } catch {

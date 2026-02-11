@@ -21,7 +21,7 @@ interface GiftType {
 
 interface Props {
   gift: GiftType
-  onApplyCoupon: (code: string) => Promise<void>
+  onApplyCoupon: (code: string) => Promise<{ message?: string }>
   onPublish: () => Promise<void>
   onCopy: () => void
   onView: () => void

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { ValentineDisplay } from "../components/ValentineDisplay"
 import { apiFetch } from "@/lib/api"
-import { Heart, Lock } from "lucide-react"
+import { Heart, Lock, Share2, Copy } from "lucide-react"
 import type { ValentineConfig } from "@/lib/valentine-types"
 
 interface Gift {
@@ -25,8 +25,10 @@ export default function PublicValentinePage() {
   const [answer, setAnswer] = useState("")
   const [unlockError, setUnlockError] = useState<string | null>(null)
 
+  const [copied, setCopied] = useState(false)
+
   /* =========================
-     FETCH GIFT (ALWAYS CHECK LOCK)
+     FETCH GIFT
   ========================== */
   useEffect(() => {
     if (!token) return
@@ -43,7 +45,6 @@ export default function PublicValentinePage() {
           : `/api/premium-gifts/view/${token}`
 
         const response = await apiFetch(url, { method: "GET" })
-
         if (!response.ok) throw new Error()
 
         const data = await response.json()
@@ -53,7 +54,6 @@ export default function PublicValentinePage() {
           setLockQuestion(data.lock_question)
           setLockHint(data.lock_hint)
 
-          // if backend rejects old token, clear it
           if (storedUnlockToken) {
             localStorage.removeItem(`unlock_${token}`)
           }
@@ -61,7 +61,6 @@ export default function PublicValentinePage() {
           setGift(data.gift)
           setLocked(false)
         }
-
       } catch {
         setError(true)
       } finally {
@@ -75,44 +74,70 @@ export default function PublicValentinePage() {
   /* =========================
      VERIFY ANSWER
   ========================== */
-const handleUnlock = async () => {
-  try {
-    setUnlockError(null)
+  const handleUnlock = async () => {
+    try {
+      setUnlockError(null)
 
-    const response = await apiFetch(
-      `/api/premium-gifts/${token}/verify-secret`, // ✅ CORRECT
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ answer }),
+      const response = await apiFetch(
+        `/api/premium-gifts/${token}/verify-secret`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ answer }),
+        }
+      )
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Incorrect answer.")
       }
-    )
 
-    const data = await response.json()
+      localStorage.setItem(`unlock_${token}`, data.unlock_token)
 
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "Incorrect answer.")
+      const giftResponse = await apiFetch(
+        `/api/premium-gifts/view/${token}?unlock_token=${data.unlock_token}`,
+        { method: "GET" }
+      )
+
+      const giftData = await giftResponse.json()
+
+      setGift(giftData.gift)
+      setLocked(false)
+    } catch (err: any) {
+      setUnlockError(err.message || "Incorrect answer.")
     }
-
-    localStorage.setItem(`unlock_${token}`, data.unlock_token)
-
-    const giftResponse = await apiFetch(
-      `/api/premium-gifts/view/${token}?unlock_token=${data.unlock_token}`,
-      { method: "GET" }
-    )
-
-    const giftData = await giftResponse.json()
-
-    setGift(giftData.gift)
-    setLocked(false)
-
-  } catch (err: any) {
-    setUnlockError(err.message || "Incorrect answer.")
   }
-}
 
+  /* =========================
+     SHARE LOGIC
+  ========================== */
+  const shareUrl =
+  typeof window !== "undefined"
+    ? `${window.location.origin}/premium-gifts/valentine/${token}`
+    : ""
+
+  const senderName = gift?.config?.senderName || ""
+  const recipientName = gift?.config?.recipientName || ""
+  const shareText = `${senderName} 💖 ${recipientName}`
+
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareText,
+          text: shareText,
+          url: shareUrl,
+        })
+      } catch {}
+    }
+  }
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(shareUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   /* =========================
      STATES
@@ -133,23 +158,15 @@ const handleUnlock = async () => {
     )
   }
 
-  /* =========================
-     LOCK SCREEN
-  ========================== */
   if (locked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[hsl(350,70%,92%)]">
         <div className="bg-card p-8 rounded-3xl shadow-xl w-full max-w-md text-center space-y-6">
-
           <Lock className="w-12 h-12 mx-auto text-primary" />
-
           <h2 className="text-2xl font-display">
             This Valentine is Locked 💖
           </h2>
-
-          <p className="text-muted-foreground">
-            {lockQuestion}
-          </p>
+          <p className="text-muted-foreground">{lockQuestion}</p>
 
           {lockHint && (
             <p className="text-xs text-muted-foreground italic">
@@ -166,9 +183,7 @@ const handleUnlock = async () => {
           />
 
           {unlockError && (
-            <p className="text-red-500 text-sm">
-              {unlockError}
-            </p>
+            <p className="text-red-500 text-sm">{unlockError}</p>
           )}
 
           <button
@@ -186,9 +201,33 @@ const handleUnlock = async () => {
      FULL EXPERIENCE
   ========================== */
   return (
-    <ValentineDisplay
-      config={gift!.config}
-      onReset={() => {}}
-    />
+    <>
+      <ValentineDisplay config={gift!.config} onReset={() => {}} />
+
+      {/* Floating Mobile-Friendly Buttons */}
+      <div className="fixed bottom-5 right-5 flex flex-col gap-3 z-50">
+
+        <button
+          onClick={handleNativeShare}
+          className="bg-pink-500 text-white p-3 rounded-full shadow-lg hover:scale-105 transition"
+        >
+          <Share2 size={18} />
+        </button>
+
+        <button
+          onClick={handleCopy}
+          className="bg-white text-black p-3 rounded-full shadow-lg hover:scale-105 transition"
+        >
+          <Copy size={18} />
+        </button>
+      </div>
+
+      {/* Copy Toast */}
+      {copied && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-full text-sm shadow-lg">
+          Link copied 💖
+        </div>
+      )}
+    </>
   )
 }

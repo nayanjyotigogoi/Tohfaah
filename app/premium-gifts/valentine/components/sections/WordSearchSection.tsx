@@ -89,8 +89,7 @@ export default function WordSearchSection({
           </h2>
 
           <p className="text-muted-foreground text-lg max-w-sm">
-            The word is hidden diagonally in the grid.
-            Guess it to reveal the magic.
+            Can you guess the secret word? Enter your guess and see if you can reveal the hidden message!
           </p>
 
           {editable && (

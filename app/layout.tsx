@@ -110,9 +110,12 @@ export const metadata: Metadata = {
 
   /* 🧭 PWA / Mobile */
   manifest: "/site.webmanifest",
-  themeColor: "#ec4899", // Tailwind pink-500
+ 
 };
 
+export const viewport = {
+ themeColor: "#ec4899", // Tailwind pink-500
+};
 /* ✅ ROOT LAYOUT */
 export default function RootLayout({
   children,

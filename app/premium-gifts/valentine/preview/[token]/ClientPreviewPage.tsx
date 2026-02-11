@@ -144,9 +144,8 @@ const shareUrl =
     ? `${window.location.origin}/premium-gifts/valentine/${gift.share_token}`
     : ""
 
-const senderName = gift?.config?.senderName || "Someone"
-const recipientName = gift?.config?.recipientName || "You"
-
+const senderName = gift?.config?.identity?.senderName ||"Someone"
+const recipientName = gift?.config?.identity?.recipientName || "You"
 
 const handleShare = async () => {
   if (!shareUrl) return

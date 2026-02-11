@@ -10,6 +10,7 @@ interface AskOutSectionProps {
   recipientName: string
   selectedDate?: string
   noMessages?: string[]
+  activityLabels: Record<string, string>
 }
 
 export default function AskOutSection({

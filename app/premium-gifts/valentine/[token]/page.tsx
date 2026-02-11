@@ -117,8 +117,9 @@ export default function PublicValentinePage() {
     ? `${window.location.origin}/premium-gifts/valentine/${token}`
     : ""
 
-  const senderName = gift?.config?.senderName || ""
-  const recipientName = gift?.config?.recipientName || ""
+const senderName = gift?.config?.identity?.senderName || ""
+const recipientName = gift?.config?.identity?.recipientName || ""
+
   const shareText = `${senderName} 💖 ${recipientName}`
 
   const handleNativeShare = async () => {

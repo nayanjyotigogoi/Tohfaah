@@ -24,7 +24,9 @@ import {
 
 interface ValentineDisplayProps {
   config: ValentineConfig
+  onReset?: () => void
 }
+
 
 export function ValentineDisplay({ config }: ValentineDisplayProps) {
   const router = useRouter()

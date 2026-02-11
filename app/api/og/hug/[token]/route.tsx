@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import type { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
@@ -9,12 +10,14 @@ const APP_BASE_URL =
   process.env.NEXT_PUBLIC_APP_URL || "https://tohfaah.com";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { token: string } }
+  request: NextRequest,
+  context: { params: Promise<{ token: string }> }
 ) {
   try {
+    const { token } = await context.params;
+
     const res = await fetch(
-      `${API_BASE_URL}/api/free-gifts/${params.token}`,
+      `${API_BASE_URL}/api/free-gifts/${token}`,
       { cache: "no-store" }
     );
 
@@ -22,7 +25,6 @@ export async function GET(
 
     const gift = await res.json();
 
-    // ✅ ONLY validate gift type
     if (gift.gift_type !== "hug") {
       throw new Error("Invalid hug gift");
     }
@@ -30,13 +32,11 @@ export async function GET(
     const recipient = gift.recipient_name ?? "Someone special";
     const sender = gift.sender_name ?? "Someone who cares";
 
-    // ✅ Safe hug style fallback
     const hugStyle =
       typeof gift.gift_data?.hug_style === "number"
         ? gift.gift_data.hug_style
         : 1;
 
-    // ✅ Safe image fallbacks
     const images = [
       `${APP_BASE_URL}/hug-${hugStyle}.gif`,
       `${APP_BASE_URL}/hug-${((hugStyle % 3) || 1)}.gif`,
@@ -57,7 +57,6 @@ export async function GET(
             fontFamily: "ui-sans-serif, system-ui",
           }}
         >
-          {/* TITLE */}
           <div style={{ textAlign: "center", marginBottom: 32 }}>
             <div
               style={{
@@ -79,7 +78,6 @@ export async function GET(
             </div>
           </div>
 
-          {/* POLAROID GRID */}
           <div
             style={{
               flex: 1,
@@ -120,7 +118,6 @@ export async function GET(
             ))}
           </div>
 
-          {/* BRAND WATERMARK */}
           <div
             style={{
               position: "absolute",
@@ -138,7 +135,6 @@ export async function GET(
       { width: 1200, height: 630 }
     );
   } catch {
-    // ✅ OG should NEVER crash
     return new ImageResponse(
       (
         <div

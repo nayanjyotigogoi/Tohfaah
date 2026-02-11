@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import type { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
@@ -6,12 +7,14 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://tohfaah.online";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { token: string } }
+  request: NextRequest,
+  context: { params: Promise<{ token: string }> }
 ) {
   try {
+    const { token } = await context.params;
+
     const res = await fetch(
-      `${API_BASE_URL}/api/free-gifts/${params.token}`,
+      `${API_BASE_URL}/api/free-gifts/${token}`,
       { cache: "no-store" }
     );
 
@@ -19,7 +22,7 @@ export async function GET(
 
     const gift = await res.json();
 
-    // ✅ Validate flower gift
+    // Validate flower gift
     if (gift.gift_type !== "flowers") {
       throw new Error("Invalid flower gift");
     }
@@ -52,7 +55,6 @@ export async function GET(
               textAlign: "center",
             }}
           >
-            {/* EMOJI FLOWERS (VISUAL ANCHOR) */}
             <div
               style={{
                 fontSize: 96,
@@ -62,7 +64,6 @@ export async function GET(
               🌸💐🌷
             </div>
 
-            {/* TEXT */}
             <div
               style={{
                 fontSize: 42,
@@ -84,7 +85,6 @@ export async function GET(
             </div>
           </div>
 
-          {/* WATERMARK */}
           <div
             style={{
               position: "absolute",
@@ -103,11 +103,10 @@ export async function GET(
       ),
       {
         width: 1080,
-        height: 1350, // ✅ PORTRAIT
+        height: 1350,
       }
     );
   } catch {
-    // ✅ OG must NEVER crash
     return new ImageResponse(
       (
         <div

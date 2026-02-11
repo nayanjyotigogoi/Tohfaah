@@ -1,14 +1,17 @@
 import { ImageResponse } from "next/og";
+import type { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { token: string } }
+  request: NextRequest,
+  context: { params: Promise<{ token: string }> }
 ) {
   try {
+    const { token } = await context.params;
+
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts/${params.token}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/free-gifts/${token}`,
       { cache: "no-store" }
     );
 
@@ -16,13 +19,11 @@ export async function GET(
 
     const gift = await res.json();
 
-    // ✅ ACCEPT ALL VALID KISS TYPES
     const kissTypes = ["kisses", "kiss", "free_kisses"];
     if (!kissTypes.includes(gift.gift_type)) {
       throw new Error("Invalid kiss gift");
     }
 
-    // ✅ ROBUST KISS COUNT HANDLING
     const kissCount =
       Array.isArray(gift.gift_data?.kisses)
         ? gift.gift_data.kisses.length

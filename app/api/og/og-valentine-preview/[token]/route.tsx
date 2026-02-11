@@ -1,11 +1,15 @@
-import { ImageResponse } from "next/og"
+import { ImageResponse } from "next/og";
+import type { NextRequest } from "next/server";
 
-export const runtime = "edge"
+export const runtime = "edge";
 
 export async function GET(
-  request: Request,
-  { params }: { params: { token: string } }
+  request: NextRequest,
+  context: { params: Promise<{ token: string }> }
 ) {
+  const { token } = await context.params; 
+  // even if unused, this satisfies Next 16 types
+
   return new ImageResponse(
     (
       <div
@@ -21,7 +25,6 @@ export async function GET(
           fontFamily: "serif",
         }}
       >
-        {/* Top Heading */}
         <div
           style={{
             position: "absolute",
@@ -39,7 +42,6 @@ export async function GET(
           <div>DAY</div>
         </div>
 
-        {/* Soft Heart Background (layered for blur effect) */}
         <div
           style={{
             position: "absolute",
@@ -68,7 +70,6 @@ export async function GET(
           }}
         />
 
-        {/* Main Text */}
         <div
           style={{
             fontSize: 140,
@@ -90,7 +91,6 @@ export async function GET(
           is in the Air
         </div>
 
-        {/* Bottom Text */}
         <div
           style={{
             position: "absolute",
@@ -102,7 +102,6 @@ export async function GET(
           Gift ideas from Amazon.
         </div>
 
-        {/* Floating Hearts */}
         <div style={{ position: "absolute", top: 200, left: 120, fontSize: 50, color: "#e57373" }}>❤</div>
         <div style={{ position: "absolute", top: 230, right: 140, fontSize: 50, color: "#e57373" }}>❤</div>
         <div style={{ position: "absolute", bottom: 160, left: 200, fontSize: 50, color: "#e57373" }}>❤</div>
@@ -113,5 +112,5 @@ export async function GET(
       width: 1200,
       height: 630,
     }
-  )
+  );
 }

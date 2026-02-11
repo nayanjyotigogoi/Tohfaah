@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import type { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
@@ -6,12 +7,14 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://tohfaah.online";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { token: string } }
+  request: NextRequest,
+  context: { params: Promise<{ token: string }> }
 ) {
   try {
+    const { token } = await context.params;
+
     const res = await fetch(
-      `${API_BASE_URL}/api/free-gifts/${params.token}`,
+      `${API_BASE_URL}/api/free-gifts/${token}`,
       { cache: "no-store" }
     );
 
@@ -19,7 +22,6 @@ export async function GET(
 
     const gift = await res.json();
 
-    // ✅ Validate gift type ONLY
     if (gift.gift_type !== "surprise") {
       throw new Error("Invalid surprise gift");
     }
@@ -27,7 +29,6 @@ export async function GET(
     const recipient = gift.recipient_name ?? "Someone special";
     const sender = gift.sender_name ?? "Someone who cares";
 
-    // ✅ Safe title fallback
     const title =
       gift.gift_data?.title?.slice(0, 60) ??
       "A Special Surprise 💖";
@@ -45,7 +46,6 @@ export async function GET(
             fontFamily: "ui-sans-serif, system-ui",
           }}
         >
-          {/* SURPRISE CARD */}
           <div
             style={{
               background: "#ffffff",
@@ -57,7 +57,6 @@ export async function GET(
               textAlign: "center",
             }}
           >
-            {/* EMOJI / VISUAL ANCHOR */}
             <div
               style={{
                 fontSize: 96,
@@ -67,7 +66,6 @@ export async function GET(
               🎁
             </div>
 
-            {/* TITLE */}
             <div
               style={{
                 fontSize: 44,
@@ -79,7 +77,6 @@ export async function GET(
               {title}
             </div>
 
-            {/* RECIPIENT */}
             <div
               style={{
                 marginTop: 20,
@@ -90,7 +87,6 @@ export async function GET(
               A surprise for {recipient}
             </div>
 
-            {/* SENDER */}
             <div
               style={{
                 marginTop: 28,
@@ -103,7 +99,6 @@ export async function GET(
             </div>
           </div>
 
-          {/* WATERMARK */}
           <div
             style={{
               position: "absolute",
@@ -122,11 +117,10 @@ export async function GET(
       ),
       {
         width: 1080,
-        height: 1350, // ✅ TRUE PORTRAIT
+        height: 1350,
       }
     );
   } catch {
-    // ✅ OG must NEVER crash
     return new ImageResponse(
       (
         <div

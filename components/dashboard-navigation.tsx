@@ -29,22 +29,27 @@ export function DashboardNavigation({ user }: { user: any }) {
   const pathname = usePathname();
   const router = useRouter();
 
-const handleLogout = async () => {
-  try {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
-      method: "POST",
-      credentials: "include", // 🔑 THIS IS CRITICAL
-      headers: {
-        Accept: "application/json",
-      },
-    });
-  } catch (e) {
-    // ignore
-  } finally {
-    // 🔥 force full reload so cookies are re-evaluated
-    window.location.href = "/login";
-  }
-};
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("auth_token");
+      if (token) {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+            "Accept": "application/json",
+          },
+        });
+      }
+    } catch (e) {
+      console.error("Logout failed", e);
+    } finally {
+      // Clear token and redirect
+      localStorage.removeItem("auth_token");
+      window.location.href = "/login";
+    }
+  };
 
 
   const initials =
@@ -85,11 +90,10 @@ const handleLogout = async () => {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-2 text-sm font-medium transition-colors ${
-                    isActive
+                  className={`flex items-center gap-2 text-sm font-medium transition-colors ${isActive
                       ? "text-primary"
                       : "text-muted-foreground hover:text-primary"
-                  }`}
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   {link.label}

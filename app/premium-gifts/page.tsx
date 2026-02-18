@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { PRICING } from "@/lib/config";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { FloatingElements } from "@/components/floating-elements";
@@ -23,8 +24,8 @@ const premiumGifts = [
       "A cinematic romantic journey with animations, puzzles and unforgettable reveals.",
     color: "from-rose-100 to-pink-100",
     href: "/premium-gifts/valentine/create",
-    price: "₹149",
-    originalPrice: "₹599",
+    price: `${PRICING.valentine_premium.symbol}${PRICING.valentine_premium.amount}`,
+    originalPrice: `${PRICING.valentine_premium.symbol}${PRICING.valentine_premium.originalPrice}`,
     // badge: "Popular",
   },
   {

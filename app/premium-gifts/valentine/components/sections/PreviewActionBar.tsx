@@ -12,6 +12,11 @@ import {
   X,
 } from "lucide-react"
 
+import { apiFetch } from "@/lib/api"
+import { loadRazorpay } from "@/lib/razorpay"
+
+import { PRICING } from "@/lib/config"
+
 interface GiftType {
   id: string
   status: string
@@ -45,35 +50,108 @@ export function PreviewActionBar({
     gift.payment_status === "paid" ||
     gift.payment_status === "coupon_redeemed"
 
-    const handleCouponSubmit = async () => {
+  const handleCouponSubmit = async () => {
     try {
-        setLoading("coupon")
-        setCouponError(null)
-        setCouponSuccess(null)
+      setLoading("coupon")
+      setCouponError(null)
+      setCouponSuccess(null)
 
-        if (!couponCode.trim()) {
+      if (!couponCode.trim()) {
         throw new Error("Please enter a coupon code.")
-        }
+      }
 
-        const data = await onApplyCoupon(couponCode)
+      const data = await onApplyCoupon(couponCode)
 
-        setCouponSuccess(data.message || "Coupon applied successfully! 🎉")
-        setCouponCode("")
+      setCouponSuccess(data.message || "Coupon applied successfully! 🎉")
+      setCouponCode("")
 
-        setTimeout(() => {
+      setTimeout(() => {
         setShowCouponModal(false)
         setCouponSuccess(null)
-        }, 1500)
+      }, 1500)
 
     } catch (err: any) {
-        setCouponError(err.message || "Invalid coupon.")
+      setCouponError(err.message || "Invalid coupon.")
     } finally {
-        setLoading(null)
+      setLoading(null)
     }
-    }
+  }
 
 
-    
+  /* ==============================
+     PAYMENT HANDLER
+  ============================== */
+  const handlePayment = async () => {
+    try {
+      setLoading("payment")
+
+      // 1. Load Razorpay Script
+      const isLoaded = await loadRazorpay()
+      if (!isLoaded) {
+        throw new Error("Razorpay SDK failed to load.")
+      }
+
+      // 2. Create Order
+      const orderRes = await apiFetch(`/api/premium-gifts/${gift.id}/create-order`, {
+        method: "POST",
+      })
+      const orderData = await orderRes.json()
+
+      if (!orderRes.ok || !orderData.success) {
+        throw new Error(orderData.message || "Failed to create order.")
+      }
+
+      // 3. Open Razorpay Modal
+      const options = {
+        key: orderData.key_id,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Tohfaah Premium",
+        description: "Valentine Experience",
+        order_id: orderData.order_id,
+        prefill: {
+          email: orderData.contact,
+        },
+        theme: {
+          color: "#e11d48", // Rose-600
+        },
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await apiFetch(`/api/premium-gifts/${gift.id}/verify-payment`, {
+              method: "POST",
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            })
+
+            const verifyData = await verifyRes.json()
+
+            if (!verifyRes.ok || !verifyData.success) {
+              alert("Payment verification failed. Please contact support.")
+              return
+            }
+
+            // Reload to update state
+            window.location.reload()
+
+          } catch (err) {
+            alert("Verification error. Please contact support.")
+          }
+        },
+      }
+
+      const paymentObject = new (window as any).Razorpay(options)
+      paymentObject.open()
+
+    } catch (err: any) {
+      alert(err.message || "Something went wrong.")
+    } finally {
+      setLoading(null)
+    }
+  }
+
   const handlePublish = async () => {
     try {
       setLoading("publish")
@@ -122,10 +200,10 @@ export function PreviewActionBar({
                 </p>
               )}
               {couponSuccess && (
-  <p className="text-sm text-green-600 text-center">
-    {couponSuccess}
-  </p>
-)}
+                <p className="text-sm text-green-600 text-center">
+                  {couponSuccess}
+                </p>
+              )}
 
 
               <Button
@@ -149,8 +227,8 @@ export function PreviewActionBar({
             {isPublished
               ? "Your gift is published."
               : isPaid
-              ? "Ready to publish."
-              : "Payment required to publish."}
+                ? "Ready to publish."
+                : "Payment required to publish."}
           </div>
 
           <div className="flex gap-3 flex-wrap justify-center">
@@ -165,9 +243,13 @@ export function PreviewActionBar({
                   Apply Coupon
                 </Button>
 
-                <Button disabled className="opacity-60 cursor-not-allowed">
+                <Button
+                  onClick={handlePayment}
+                  disabled={loading === "payment"}
+                  className="bg-rose-600 hover:bg-rose-700 text-white"
+                >
                   <CreditCard className="w-4 h-4 mr-2" />
-                  Pay Now
+                  {loading === "payment" ? "Loading..." : `Pay ${PRICING.valentine_premium.symbol}${PRICING.valentine_premium.amount}`}
                 </Button>
               </>
             )}

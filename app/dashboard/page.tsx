@@ -33,12 +33,21 @@ export default function DashboardPage() {
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const [stats, setStats] = useState({
-    free_gifts: 0,
-    premium_live: 0,
-    premium_drafts: 0,
-    orders: 0,
-  });
+  type DashboardStats = {
+  free_gifts: number;
+  premium_live: number;
+  premium_drafts: number;
+  orders: number;
+  memory_maps: number;
+};
+
+const [stats, setStats] = useState<DashboardStats>({
+  free_gifts: 0,
+  premium_live: 0,
+  premium_drafts: 0,
+  orders: 0,
+  memory_maps: 0,
+});
 
   const [freeGifts, setFreeGifts] = useState<any[]>([]);
   const [paidPremium, setPaidPremium] = useState<any[]>([]);

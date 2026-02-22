@@ -29,6 +29,16 @@ const premiumGifts = [
     // badge: "Popular",
   },
   {
+    icon: Sparkles,
+    title: "Emotional Memory Map",
+    description:
+      "Pin your most meaningful moments to real-world locations and build a shared emotional world.",
+    color: "from-blue-100 to-indigo-100",
+    href: "/premium-gifts/map-memory/create",
+    price: "₹249",
+    originalPrice: "₹799",
+  },
+  {
     icon: Cake,
     title: "Birthday Surprise",
     description:
@@ -37,6 +47,7 @@ const premiumGifts = [
     href: "/coming-soon",
     price: "₹199",
   },
+  
   {
     icon: CalendarDays,
     title: "Anniversary Story",
@@ -74,6 +85,7 @@ const premiumGifts = [
     href: "/coming-soon",
     price: "₹699",
   },
+  
 ];
 
 export default function PremiumGiftsPage() {

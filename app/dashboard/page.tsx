@@ -25,7 +25,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-type Tab = "overview" | "free" | "paid" | "drafts" | "orders" | "settings";
+type Tab = "overview" | "free" | "paid" | "drafts" | "orders" | "memory" | "settings";
+
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
@@ -44,6 +45,8 @@ export default function DashboardPage() {
   const [draftPremium, setDraftPremium] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [memoryMaps, setMemoryMaps] = useState<any[]>([]);
+
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -68,6 +71,8 @@ export default function DashboardPage() {
         setFreeGifts(data.free || []);
         setPaidPremium(data.paid || []);
         setDraftPremium(data.drafts || []);
+        setMemoryMaps(data.memory_maps || []);
+
         setOrders(data.orders || []);
         setRecentActivity(data.recent_activity || []);
       } catch (err) {
@@ -114,6 +119,7 @@ export default function DashboardPage() {
     { id: "drafts", label: "Drafts", icon: FileText },
     { id: "orders", label: "Shop Orders", icon: ShoppingBag },
     { id: "settings", label: "Settings", icon: Settings },
+    { id: "memory", label: "Memory Maps", icon: Heart },
   ] as const;
 
   return (
@@ -182,6 +188,8 @@ export default function DashboardPage() {
                   <StatCard icon={Sparkles} label="Premium Gifts" value={stats.premium_live} />
                   <StatCard icon={FileText} label="Drafts" value={stats.premium_drafts} />
                   <StatCard icon={ShoppingBag} label="Shop Orders" value={stats.orders} />
+                  <StatCard icon={Heart} label="Memory Maps" value={stats.memory_maps || 0} />
+
                 </div>
 
                 <div className="bg-card border border-border rounded-2xl p-6">
@@ -302,6 +310,37 @@ export default function DashboardPage() {
                 ))
               ))}
 
+              {/* MEMORY MAPS */}
+              {activeTab === "memory" &&
+                (memoryMaps.length === 0 ? (
+                  <EmptyState
+                    icon={Heart}
+                    title="No memory maps yet"
+                    description="Create your first collaborative memory map"
+                    actionLabel="Create Memory Map"
+                    actionHref="/premium-gifts/map-memory/create"
+                  />
+                ) : (
+                  memoryMaps.map((map) => (
+                    <MemoryMapCard
+                      key={map.id}
+                      map={map}
+                      onCopyLink={() =>
+                        map.link && copyLink(`/memory-map/${map.share_token}`)
+                      }
+                      copiedLink={copiedLink}
+                      onOpen={() =>
+                        map.status === "draft"
+                          ? window.open(`/premium-gifts/map-memory/manage/${map.id}`, "_blank")
+                          : playLink(`/premium-gifts/map-memory/${map.share_token}`)
+                      }
+
+                    />
+                  ))
+                ))
+              }
+
+
             {/* SETTINGS */}
             {activeTab === "settings" && <SettingsPanel />}
           </motion.div>
@@ -411,6 +450,66 @@ function GiftCard({ gift, onCopyLink, copiedLink, onPlay }: any) {
     </div>
   );
 }
+
+function MemoryMapCard({ map, onCopyLink, copiedLink, onOpen }: any) {
+  const link =
+    map.share_token
+      ? `/premium-gifts/map-memory/${map.share_token}`
+      : null;
+
+  const fullUrl =
+    link && typeof window !== "undefined"
+      ? `${window.location.origin}${link}`
+      : null;
+
+  return (
+    <div className="flex items-center justify-between p-6 bg-card border border-border rounded-2xl">
+      <div>
+        <p className="font-medium">{map.title}</p>
+        <p className="text-sm text-muted-foreground">
+          {map.participants_count} Participants • {map.date}
+        </p>
+      </div>
+
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() =>
+            map.status === "draft"
+              ? window.open(`/premium-gifts/map-memory/manage/${map.id}`, "_blank")
+              : window.open(link!, "_blank")
+          }
+        >
+          <Play className="w-4 h-4" />
+        </Button>
+
+        {link && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onCopyLink(link)}
+          >
+            {copiedLink === fullUrl ? "Copied!" : <Copy className="w-4 h-4" />}
+          </Button>
+        )}
+
+        {map.is_owner && (
+          <Button
+            size="sm"
+            onClick={() =>
+              window.location.href = `/premium-gifts/map-memory/manage/${map.id}`
+            }
+          >
+            Manage
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 
 function DraftCard({ gift, onDeleted }: any) {
   const [deleting, setDeleting] = useState(false);
@@ -530,6 +629,7 @@ function OrderCard({ order }: any) {
     </div>
   );
 }
+
 
 function SettingsPanel() {
   return (

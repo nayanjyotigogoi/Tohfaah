@@ -9,6 +9,7 @@ import "./globals.css";
 />
 
 import FeedbackProvider from "@/components/global/FeedbackProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 /* Fonts */
 const cormorant = Cormorant_Garamond({
@@ -129,6 +130,7 @@ export default function RootLayout({
       >
         {children}
         <FeedbackProvider />
+        <Toaster />
         <Analytics />
       </body>
     </html>

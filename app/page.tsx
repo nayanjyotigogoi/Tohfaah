@@ -2,6 +2,7 @@ import { Navigation } from "@/components/navigation";
 import { HeroSection } from "@/components/home/hero-section";
 import { FreeGiftsSection } from "@/components/home/free-gifts-section";
 import { PremiumSection } from "@/components/home/premium-section";
+import { MemoryMapPreview } from "@/components/home/memory-map-preview";
 import { HowItWorksSection } from "@/components/home/how-it-works-section";
 import { Footer } from "@/components/footer";
 import { FloatingElements } from "@/components/floating-elements";
@@ -14,6 +15,7 @@ export default function HomePage() {
       <HeroSection />
       <FreeGiftsSection />
       <PremiumSection />
+      <MemoryMapPreview />
       <HowItWorksSection />
       <Footer />
     </main>

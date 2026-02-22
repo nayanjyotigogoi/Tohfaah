@@ -89,12 +89,15 @@ const handleUnlock = () => {
               ))}
             </div>
 
-            <Button
-              onClick={handleUnlock}
-              className="bg-white text-rose-700 hover:bg-rose-50 shadow-lg"
-            >
-              Unlock Now
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button
+                onClick={handleUnlock}
+                className="bg-white text-rose-700 hover:bg-rose-50 shadow-lg"
+              >
+                Unlock Now
+              </Button>
+              
+            </div>
 
 
           </motion.div>
@@ -141,16 +144,15 @@ const handleUnlock = () => {
                   Create your own to see the magic unfold
                 </p>
 
+                
+                
                 {/* 🔹 ADD ONLY: Unlock Button */}
-                
-                  <Button
-                    onClick={handleUnlock}
-                    className="bg-white text-rose-700 hover:bg-rose-50 shadow-lg"
-                  >
-                    Unlock Now
-                  </Button>
-
-                
+                <Button
+                  onClick={handleUnlock}
+                  className="bg-white text-rose-700 hover:bg-rose-50 shadow-lg"
+                >
+                  Unlock Now
+                </Button>
               </div>
 
               {/* Floating Play Button */}

@@ -123,44 +123,44 @@ export function MemoryMap({ mapData, mode = "active" }: MemoryMapProps) {
      🔐 PERMISSION FLAGS (FINAL LOGIC)
   ==================================================== */
 
-const currentUserId = mapData?.current_user_id
-const currentUserRole = mapData?.current_user_role
+  const currentUserId = mapData?.current_user_id
+  const currentUserRole = mapData?.current_user_role
 
-const isOwner = currentUserRole === "owner"
-const isParticipant = currentUserRole === "participant"
+  const isOwner = currentUserRole === "owner"
+  const isParticipant = currentUserRole === "participant"
 
-const isDraft = localStatus === "draft"
-const isPublished = localStatus === "active"
+  const isDraft = localStatus === "draft"
+  const isPublished = localStatus === "active"
 
-const [showMobileSearch, setShowMobileSearch] = useState(false)
+  const [showMobileSearch, setShowMobileSearch] = useState(false)
 
-const isPaid =
-  localPaymentStatus === "paid" ||
-  localPaymentStatus === "coupon_redeemed"
+  const isPaid =
+    localPaymentStatus === "paid" ||
+    localPaymentStatus === "coupon_redeemed"
 
-  
+
 
 
 
   // ✅ Only allow add if map is active + unlocked, OR draft + paid + unlocked
-const canAddMemory =
-  isUnlocked &&
-  (isOwner || isParticipant) &&
-  (isPublished || (isDraft && isPaid))
+  const canAddMemory =
+    isUnlocked &&
+    (isOwner || isParticipant) &&
+    (isPublished || (isDraft && isPaid))
 
-const mustPayToAdd =
-  isDraft && !isPaid
+  const mustPayToAdd =
+    isDraft && !isPaid
 
 
 
   // 🔐 Edit/Delete handled per memory later
   const canPublish = isOwner && isDraft && isPaid
-useEffect(() => {
-  if (!mapData) return
+  useEffect(() => {
+    if (!mapData) return
 
-  setLocalStatus(mapData.status)
-  setLocalPaymentStatus(mapData.payment_status)
-}, [mapData])
+    setLocalStatus(mapData.status)
+    setLocalPaymentStatus(mapData.payment_status)
+  }, [mapData])
 
   /* ===================================================
      PASSWORD CHECK
@@ -326,127 +326,129 @@ useEffect(() => {
      SYNC MARKERS
   ==================================================== */
 
-// useEffect(() => {
-//   const map = mapRef.current
-//   if (!map || !isLoaded) return
+  // useEffect(() => {
+  //   const map = mapRef.current
+  //   if (!map || !isLoaded) return
 
-//   // Clear existing markers
-//   markersRef.current.forEach((marker) => {
-//     marker.setMap(null)
-//   })
-//   markersRef.current.clear()
+  //   // Clear existing markers
+  //   markersRef.current.forEach((marker) => {
+  //     marker.setMap(null)
+  //   })
+  //   markersRef.current.clear()
 
-//   memories.forEach((memory) => {
-//     if (memory.lat == null || memory.lng == null) return
+  //   memories.forEach((memory) => {
+  //     if (memory.lat == null || memory.lng == null) return
 
-//     const iconUrl = createBadgeIconUrl(
-//       memory.badge?.emoji ?? "📍",
-//       memory.badge?.bgColor ?? "#6366f1"
-//     )
+  //     const iconUrl = createBadgeIconUrl(
+  //       memory.badge?.emoji ?? "📍",
+  //       memory.badge?.bgColor ?? "#6366f1"
+  //     )
 
-//     const marker = new google.maps.Marker({
-//       position: { lat: Number(memory.lat), lng: Number(memory.lng) },
-//       map,
-//       icon: {
-//         url: iconUrl,
-//         scaledSize: new google.maps.Size(44, 44),
-//         anchor: new google.maps.Point(22, 22),
-//       },
-//       title: memory.title,
-//     })
+  //     const marker = new google.maps.Marker({
+  //       position: { lat: Number(memory.lat), lng: Number(memory.lng) },
+  //       map,
+  //       icon: {
+  //         url: iconUrl,
+  //         scaledSize: new google.maps.Size(44, 44),
+  //         anchor: new google.maps.Point(22, 22),
+  //       },
+  //       title: memory.title,
+  //     })
 
-//     marker.addListener("click", () => {
-//       setSelectedMemory(memory)
-//     })
+  //     marker.addListener("click", () => {
+  //       setSelectedMemory(memory)
+  //     })
 
-//     markersRef.current.set(memory.id, marker)
-//   })
-// }, [memories, isLoaded])
+  //     markersRef.current.set(memory.id, marker)
+  //   })
+  // }, [memories, isLoaded])
   /* ===================================================
      ADD MEMORY
   ==================================================== */
 
-const handleAddMemory = async (memory: Memory & { file?: File | null }) => {
-  if (!mapData?.id) return
+  const handleAddMemory = async (memory: Memory & { file?: File | null }) => {
+    if (!mapData?.id) return
 
-  try {
-    const token = localStorage.getItem("auth_token")
-    if (!token) {
-      alert("Please login again.")
-      return
-    }
-
-    const formData = new FormData()
-
-    formData.append("title", memory.title)
-    formData.append("badge", memory.badge.label)
-    formData.append("message", memory.message || "")
-    formData.append("latitude", memory.lat.toString())
-    formData.append("longitude", memory.lng.toString())
-
-    if (memory.date) {
-      formData.append("memory_date", memory.date)
-    }
-
-    if (memory.file) {
-      formData.append("photo", memory.file)
-    }
-
-    // ✅ Use raw fetch like Valentine
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/memory-maps/${mapData.id}/memories`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`, // 🔥 IMPORTANT
-        },
-        body: formData, // 🔥 DO NOT SET CONTENT-TYPE
+    try {
+      const token = localStorage.getItem("auth_token")
+      if (!token) {
+        alert("Please login again.")
+        return
       }
-    )
 
-    const data = await response.json()
+      const formData = new FormData()
 
-    if (!response.ok || !data.success || !data.memory) {
-      console.error("Server response:", data)
-      const errorMessage = data.message || "Failed to save memory. Please try again."
-      alert(errorMessage)
-      throw new Error(errorMessage)
-    }
+      formData.append("title", memory.title)
+      formData.append("badge", memory.badge.label)
+      formData.append("message", memory.message || "")
+      formData.append("latitude", memory.lat.toString())
+      formData.append("longitude", memory.lng.toString())
 
-    const m = data.memory
+      if (memory.date) {
+        formData.append("memory_date", memory.date)
+      }
 
-    const badgeObj =
-      BADGES.find((b) => b.label === m.badge) || BADGES[0]
+      if (memory.file) {
+        formData.append("photo", memory.file)
+      }
 
-   const formatted: Memory = {
-  id: m.id,
-  user_id: m.user_id, // 🔥 ADD THIS
-  user: m.user, // ✅ ADD THIS
-  title: m.title,
-  badge: badgeObj,
-  message: m.message ?? "",
-  imageUrl: m.photo_url
-    ? `${process.env.NEXT_PUBLIC_API_URL}/${m.photo_url}`
-    : undefined,
-  lat: Number(m.latitude),
-  lng: Number(m.longitude),
-  date: m.memory_date ?? undefined,
-  createdAt: new Date(m.created_at).getTime(),
-}
+      // ✅ Use raw fetch like Valentine
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/memory-maps/${mapData.id}/memories`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`, // 🔥 IMPORTANT
+          },
+          body: formData, // 🔥 DO NOT SET CONTENT-TYPE
+        }
+      )
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success || !data.memory) {
+        console.error("Server response:", data)
+        const errorMessage = data.message || "Failed to save memory. Please try again."
+        alert(errorMessage)
+        throw new Error(errorMessage)
+      }
+
+      const m = data.memory
+
+      const badgeObj =
+        BADGES.find((b) => b.label === m.badge) || BADGES[0]
+
+      const formatted: Memory = {
+        id: m.id,
+        user_id: m.user_id, // 🔥 ADD THIS
+        user: m.user, // ✅ ADD THIS
+        title: m.title,
+        badge: badgeObj,
+        message: m.message ?? "",
+        imageUrl: m.photo_url
+          ? m.photo_url.startsWith('http')
+            ? m.photo_url  // Already absolute (proxy URL from backend)
+            : `${process.env.NEXT_PUBLIC_API_URL}/${m.photo_url}`  // Legacy relative path
+          : undefined,
+        lat: Number(m.latitude),
+        lng: Number(m.longitude),
+        date: m.memory_date ?? undefined,
+        createdAt: new Date(m.created_at).getTime(),
+      }
 
 
-    setMemories((prev) => [...prev, formatted])
-    setShowAddModal(false)
-    setClickedCoords(null)
+      setMemories((prev) => [...prev, formatted])
+      setShowAddModal(false)
+      setClickedCoords(null)
 
-  } catch (err) {
-    console.error("Add memory failed:", err)
-    const errorMessage = err instanceof Error ? err.message : "Failed to add memory. Please check your connection and try again."
-    if (!errorMessage.includes("Failed to save memory")) {
-      alert(errorMessage)
+    } catch (err) {
+      console.error("Add memory failed:", err)
+      const errorMessage = err instanceof Error ? err.message : "Failed to add memory. Please check your connection and try again."
+      if (!errorMessage.includes("Failed to save memory")) {
+        alert(errorMessage)
+      }
     }
   }
-}
 
 
 
@@ -478,7 +480,7 @@ const handleAddMemory = async (memory: Memory & { file?: File | null }) => {
   /* ===================================================
    LOAD INITIAL MEMORIES FROM BACKEND
 =================================================== */
-const initializedRef = useRef(false)
+  const initializedRef = useRef(false)
 
   // Cleanup search timeout on unmount
   useEffect(() => {
@@ -506,34 +508,36 @@ const initializedRef = useRef(false)
     }
   }, [showSearchResults])
 
-useEffect(() => {
-  if (!mapData?.memories) return
-  if (initializedRef.current) return
+  useEffect(() => {
+    if (!mapData?.memories) return
+    if (initializedRef.current) return
 
-  const formatted: Memory[] = mapData.memories.map((m: any) => {
-    const badgeObj =
-      BADGES.find((b) => b.label === m.badge) || BADGES[0]
+    const formatted: Memory[] = mapData.memories.map((m: any) => {
+      const badgeObj =
+        BADGES.find((b) => b.label === m.badge) || BADGES[0]
 
-return {
-  id: m.id,
-  user_id: m.user_id, // 🔥 ADD THIS
-   user: m.user,
-  title: m.title,
-  badge: badgeObj,
-  message: m.message ?? "",
-  imageUrl: m.photo_url
-    ? `${process.env.NEXT_PUBLIC_API_URL}/${m.photo_url}`
-    : undefined,
-  lat: Number(m.latitude),
-  lng: Number(m.longitude),
-  date: m.memory_date ?? undefined,
-  createdAt: new Date(m.created_at).getTime(),
-}
-  })
+      return {
+        id: m.id,
+        user_id: m.user_id, // 🔥 ADD THIS
+        user: m.user,
+        title: m.title,
+        badge: badgeObj,
+        message: m.message ?? "",
+        imageUrl: m.photo_url
+          ? m.photo_url.startsWith('http')
+            ? m.photo_url  // Already absolute (proxy URL from backend)
+            : `${process.env.NEXT_PUBLIC_API_URL}/${m.photo_url}`  // Legacy relative path
+          : undefined,
+        lat: Number(m.latitude),
+        lng: Number(m.longitude),
+        date: m.memory_date ?? undefined,
+        createdAt: new Date(m.created_at).getTime(),
+      }
+    })
 
-  setMemories(formatted)
-  initializedRef.current = true
-}, [mapData])
+    setMemories(formatted)
+    initializedRef.current = true
+  }, [mapData])
 
 
 
@@ -561,8 +565,8 @@ return {
       // )
 
       const response = await fetch(
-  `/api/location-search?q=${encodeURIComponent(query)}`
-)
+        `/api/location-search?q=${encodeURIComponent(query)}`
+      )
 
       const data = await response.json()
       setSearchResults(data)
@@ -634,78 +638,78 @@ return {
   }
 
   // 🎨 Contributor color palette (max 5 users)
-const contributorColors = [
-  "#9333ea",
-  "#2563eb",
-  "#ec4899",
-  "#f97316",
-  "#10b981",
-]
+  const contributorColors = [
+    "#9333ea",
+    "#2563eb",
+    "#ec4899",
+    "#f97316",
+    "#10b981",
+  ]
 
-// Map user_id → color
-const userColorMap = useMemo(() => {
-  const uniqueUsers = Array.from(
-    new Set(memories.map((m) => m.user_id))
-  )
+  // Map user_id → color
+  const userColorMap = useMemo(() => {
+    const uniqueUsers = Array.from(
+      new Set(memories.map((m) => m.user_id))
+    )
 
-  const map: Record<string, string> = {}
+    const map: Record<string, string> = {}
 
-  uniqueUsers.slice(0, 5).forEach((userId, index) => {
-    map[userId] = contributorColors[index % contributorColors.length]
-  })
+    uniqueUsers.slice(0, 5).forEach((userId, index) => {
+      map[userId] = contributorColors[index % contributorColors.length]
+    })
 
-  return map
-}, [memories])
+    return map
+  }, [memories])
 
-// 📅 Sort memories chronologically
-const sortedMemories = useMemo(() => {
-  return [...memories].sort(
-    (a, b) => a.createdAt - b.createdAt
-  )
-}, [memories])
+  // 📅 Sort memories chronologically
+  const sortedMemories = useMemo(() => {
+    return [...memories].sort(
+      (a, b) => a.createdAt - b.createdAt
+    )
+  }, [memories])
 
-// 🌀 Create smooth curved connection
-function createCurvedPath(
-  start: { lat: number; lng: number },
-  end: { lat: number; lng: number },
-  curvature = 0.25
-) {
-  const points = []
+  // 🌀 Create smooth curved connection
+  function createCurvedPath(
+    start: { lat: number; lng: number },
+    end: { lat: number; lng: number },
+    curvature = 0.25
+  ) {
+    const points = []
 
-  const latDiff = end.lat - start.lat
-  const lngDiff = end.lng - start.lng
+    const latDiff = end.lat - start.lat
+    const lngDiff = end.lng - start.lng
 
-  const midLat = (start.lat + end.lat) / 2
-  const midLng = (start.lng + end.lng) / 2
+    const midLat = (start.lat + end.lat) / 2
+    const midLng = (start.lng + end.lng) / 2
 
-  const offsetLat = -lngDiff * curvature
-  const offsetLng = latDiff * curvature
+    const offsetLat = -lngDiff * curvature
+    const offsetLng = latDiff * curvature
 
-  const controlPoint = {
-    lat: midLat + offsetLat,
-    lng: midLng + offsetLng,
+    const controlPoint = {
+      lat: midLat + offsetLat,
+      lng: midLng + offsetLng,
+    }
+
+    const steps = 40
+
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps
+
+      const lat =
+        (1 - t) * (1 - t) * start.lat +
+        2 * (1 - t) * t * controlPoint.lat +
+        t * t * end.lat
+
+      const lng =
+        (1 - t) * (1 - t) * start.lng +
+        2 * (1 - t) * t * controlPoint.lng +
+        t * t * end.lng
+
+      points.push({ lat, lng })
+    }
+
+    return points
   }
-
-  const steps = 40
-
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps
-
-    const lat =
-      (1 - t) * (1 - t) * start.lat +
-      2 * (1 - t) * t * controlPoint.lat +
-      t * t * end.lat
-
-    const lng =
-      (1 - t) * (1 - t) * start.lng +
-      2 * (1 - t) * t * controlPoint.lng +
-      t * t * end.lng
-
-    points.push({ lat, lng })
-  }
-
-  return points
-}
   /* ===================================================
      RENDER
   ==================================================== */
@@ -713,7 +717,7 @@ function createCurvedPath(
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden relative">
 
-    <ExperienceNav />
+      <ExperienceNav />
 
       {!isUnlocked && isPublished && (
         <PasswordGate
@@ -723,7 +727,7 @@ function createCurvedPath(
       )}
 
       <div className="h-full w-full relative" style={{ minHeight: "100vh" }}>
-      {/* <div className="flex-1 relative pt-20"> */}
+        {/* <div className="flex-1 relative pt-20"> */}
         {loadError ? (
           <div className="h-full w-full flex items-center justify-center">
             <div className="text-center">
@@ -761,56 +765,56 @@ function createCurvedPath(
               ],
             }}
           >
-              {memories.map((memory) => {
-    if (memory.lat == null || memory.lng == null) return null
+            {memories.map((memory) => {
+              if (memory.lat == null || memory.lng == null) return null
 
-    return (
-      <Marker
-        key={memory.id}
-        position={{
-          lat: Number(memory.lat),
-          lng: Number(memory.lng),
-        }}
-        icon={{
-          url: createBadgeIconUrl(
-            memory.badge?.emoji ?? "📍",
-            memory.badge?.bgColor ?? "#6366f1"
-          ),
-          scaledSize: new window.google.maps.Size(44, 44),
-          anchor: new window.google.maps.Point(22, 22),
-        }}
-        title={memory.title}
-        onClick={() => setSelectedMemory(memory)}
-      />
-    )
-  })}
+              return (
+                <Marker
+                  key={memory.id}
+                  position={{
+                    lat: Number(memory.lat),
+                    lng: Number(memory.lng),
+                  }}
+                  icon={{
+                    url: createBadgeIconUrl(
+                      memory.badge?.emoji ?? "📍",
+                      memory.badge?.bgColor ?? "#6366f1"
+                    ),
+                    scaledSize: new window.google.maps.Size(44, 44),
+                    anchor: new window.google.maps.Point(22, 22),
+                  }}
+                  title={memory.title}
+                  onClick={() => setSelectedMemory(memory)}
+                />
+              )
+            })}
 
-  {/* 🌀 Curved Journey Connections */}
-{sortedMemories.length > 1 &&
-  sortedMemories.slice(0, -1).map((memory, index) => {
-    const nextMemory = sortedMemories[index + 1]
+            {/* 🌀 Curved Journey Connections */}
+            {sortedMemories.length > 1 &&
+              sortedMemories.slice(0, -1).map((memory, index) => {
+                const nextMemory = sortedMemories[index + 1]
 
-    const curvedPath = createCurvedPath(
-      { lat: memory.lat, lng: memory.lng },
-      { lat: nextMemory.lat, lng: nextMemory.lng }
-    )
+                const curvedPath = createCurvedPath(
+                  { lat: memory.lat, lng: memory.lng },
+                  { lat: nextMemory.lat, lng: nextMemory.lng }
+                )
 
-    const segmentColor =
-      userColorMap[nextMemory.user_id] || "#9333ea"
+                const segmentColor =
+                  userColorMap[nextMemory.user_id] || "#9333ea"
 
-    return (
-      <Polyline
-        key={`connection-${memory.id}`}
-        path={curvedPath}
-        options={{
-          strokeColor: segmentColor,
-          strokeOpacity: 0.95,
-          strokeWeight: 5,
-          geodesic: true,
-        }}
-      />
-    )
-  })}
+                return (
+                  <Polyline
+                    key={`connection-${memory.id}`}
+                    path={curvedPath}
+                    options={{
+                      strokeColor: segmentColor,
+                      strokeOpacity: 0.95,
+                      strokeWeight: 5,
+                      geodesic: true,
+                    }}
+                  />
+                )
+              })}
           </GoogleMap>
         )}
       </div>
@@ -918,7 +922,7 @@ function createCurvedPath(
           </button>
         )}
       </div>
-        
+
       {/* Top Action Bar - Mobile Floating */}
       <div className="sm:hidden fixed top-4 right-4 z-[400] flex flex-col gap-2">
         <button
@@ -966,77 +970,77 @@ function createCurvedPath(
           </button>
         )}
       </div>
-              {/* Mobile Search Overlay */}
-{showMobileSearch && (
-  <div
-  className="sm:hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-[800] flex items-start justify-center pt-20 px-4"
-  data-search-container
->
-    <div className="w-full max-w-md">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10" size={18} />
-        <input
-          autoFocus
-          type="text"
-          value={searchQuery}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          placeholder="Search location..."
-          className="w-full pl-10 pr-10 py-3 rounded-xl glass-strong border border-border/50 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-base shadow-lg"
-        />
-        <button
-          onClick={() => {
-            setShowMobileSearch(false)
-            setSearchQuery("")
-            setSearchResults([])
-            setShowSearchResults(false)
-          }}
-          className="absolute right-3 top-1/2 -translate-y-1/2"
+      {/* Mobile Search Overlay */}
+      {showMobileSearch && (
+        <div
+          className="sm:hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-[800] flex items-start justify-center pt-20 px-4"
+          data-search-container
         >
-          <XIcon size={18} />
-        </button>
-      </div>
+          <div className="w-full max-w-md">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10" size={18} />
+              <input
+                autoFocus
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Search location..."
+                className="w-full pl-10 pr-10 py-3 rounded-xl glass-strong border border-border/50 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-base shadow-lg"
+              />
+              <button
+                onClick={() => {
+                  setShowMobileSearch(false)
+                  setSearchQuery("")
+                  setSearchResults([])
+                  setShowSearchResults(false)
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+              >
+                <XIcon size={18} />
+              </button>
+            </div>
 
-      {showSearchResults && searchResults.length > 0 && (
-        <div className="mt-2 glass-strong rounded-xl shadow-xl border border-border/50 overflow-hidden max-h-[300px] overflow-y-auto">
-          {searchResults.map((result, index) => (
-            <button
-              key={index}
-              onClick={() => {
-  const lat = parseFloat(result.lat)
-  const lng = parseFloat(result.lon)
+            {showSearchResults && searchResults.length > 0 && (
+              <div className="mt-2 glass-strong rounded-xl shadow-xl border border-border/50 overflow-hidden max-h-[300px] overflow-y-auto">
+                {searchResults.map((result, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      const lat = parseFloat(result.lat)
+                      const lng = parseFloat(result.lon)
 
-  setShowMobileSearch(false)
+                      setShowMobileSearch(false)
 
-  setTimeout(() => {
-    if (mapRef.current) {
-      mapRef.current.panTo({ lat, lng })
-      mapRef.current.setZoom(12)
-      toast.success(`Flying to ${result.display_name}`)
-    }
-  }, 150)
+                      setTimeout(() => {
+                        if (mapRef.current) {
+                          mapRef.current.panTo({ lat, lng })
+                          mapRef.current.setZoom(12)
+                          toast.success(`Flying to ${result.display_name}`)
+                        }
+                      }, 150)
 
-  setSearchQuery("")
-  setSearchResults([])
-  setShowSearchResults(false)
-}}
-              className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border/30 last:border-b-0 flex items-start gap-3"
-            >
-              <MapPinIcon size={18} className="text-primary mt-0.5 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-foreground text-sm truncate">
-                  {result.display_name.split(",")[0]}
-                </p>
-                <p className="text-xs text-muted-foreground line-clamp-1">
-                  {result.display_name}
-                </p>
+                      setSearchQuery("")
+                      setSearchResults([])
+                      setShowSearchResults(false)
+                    }}
+                    className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border/30 last:border-b-0 flex items-start gap-3"
+                  >
+                    <MapPinIcon size={18} className="text-primary mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground text-sm truncate">
+                        {result.display_name.split(",")[0]}
+                      </p>
+                      <p className="text-xs text-muted-foreground line-clamp-1">
+                        {result.display_name}
+                      </p>
+                    </div>
+                  </button>
+                ))}
               </div>
-            </button>
-          ))}
+            )}
+          </div>
         </div>
       )}
-    </div>
-  </div>
-)}
 
       {/* Payment Panel */}
       {showPaymentPanel && isDraft && (
@@ -1066,19 +1070,19 @@ function createCurvedPath(
 
             <button
               onClick={async () => {
-              // ✅ Update payment state
-              setLocalPaymentStatus("paid")
+                // ✅ Update payment state
+                setLocalPaymentStatus("paid")
 
-              setShowPaymentPanel(false)
+                setShowPaymentPanel(false)
 
-              // ✅ Show success toast
-              toast.success("Payment successful!", {
-                description: "Your map is being published...",
-              })
+                // ✅ Show success toast
+                toast.success("Payment successful!", {
+                  description: "Your map is being published...",
+                })
 
-              // ✅ Auto-publish and redirect to published map
-              await handlePublish()
-            }}
+                // ✅ Auto-publish and redirect to published map
+                await handlePublish()
+              }}
               className="w-full py-2 rounded-xl bg-accent text-white"
             >
               Pay ₹199
@@ -1123,28 +1127,28 @@ function createCurvedPath(
         </button>
       </div>
 
-   
 
-     {selectedMemory && !editingMemory && (
-          <MemoryDetailCard
-            memory={selectedMemory}
-            allMemories={memories}
-            onClose={() => setSelectedMemory(null)}
-            onDelete={
-              isOwner ||
+
+      {selectedMemory && !editingMemory && (
+        <MemoryDetailCard
+          memory={selectedMemory}
+          allMemories={memories}
+          onClose={() => setSelectedMemory(null)}
+          onDelete={
+            isOwner ||
               selectedMemory.user_id === currentUserId
-                ? handleDeleteMemory
-                : undefined
-            }
-            onEdit={
-              isOwner ||
+              ? handleDeleteMemory
+              : undefined
+          }
+          onEdit={
+            isOwner ||
               selectedMemory.user_id === currentUserId
-                ? setEditingMemory
-                : undefined
-            }
-            onConnect={() => {}}
-          />
-        )}
+              ? setEditingMemory
+              : undefined
+          }
+          onConnect={() => { }}
+        />
+      )}
 
 
       {editingMemory && (
@@ -1199,7 +1203,7 @@ function createCurvedPath(
       )}
 
       {/* ✅ SHARE MODAL GOES HERE */}
-     {showShareModal && (
+      {showShareModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[900]">
           <div className="bg-card rounded-3xl p-6 w-full max-w-md space-y-5 shadow-2xl">
 
@@ -1274,7 +1278,7 @@ function createCurvedPath(
         </div>
       )}
 
-<Footer />
+      <Footer />
     </div>
   )
 }

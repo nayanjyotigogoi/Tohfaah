@@ -862,13 +862,13 @@ export function MemoryMap({ mapData, mode = "active" }: MemoryMapProps) {
       <div className="hidden sm:block fixed top-6 left-6 w-80 z-[450]" data-search-container>
         <div className="relative">
           <div className="relative flex items-center">
-            <Search className="absolute left-3 text-muted-foreground z-10" size={18} />
+            <Search className="absolute left-3 text-foreground/70 z-10" size={18} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Search location (e.g., Delhi, New York, Boston)..."
-              className="w-full pl-10 pr-10 py-3 rounded-xl glass-strong border border-border/50 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-base transition-all shadow-lg"
+              className="w-full pl-10 pr-10 py-3 rounded-xl bg-background/95 backdrop-blur-md border px-4 shadow-lg focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground transition-all"
               onFocus={() => {
                 if (searchResults.length > 0) {
                   setShowSearchResults(true)
@@ -890,7 +890,7 @@ export function MemoryMap({ mapData, mode = "active" }: MemoryMapProps) {
           </div>
 
           {showSearchResults && searchResults.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 glass-strong rounded-xl shadow-xl border border-border/50 overflow-hidden z-[500] max-h-[300px] overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-md rounded-xl shadow-xl border border-border/50 overflow-hidden z-[500] max-h-[300px] overflow-y-auto">
               {searchResults.map((result, index) => (
                 <button
                   key={index}
@@ -1009,14 +1009,14 @@ export function MemoryMap({ mapData, mode = "active" }: MemoryMapProps) {
         >
           <div className="w-full max-w-md">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10" size={18} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/70 z-10" size={18} />
               <input
                 autoFocus
                 type="text"
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder="Search location..."
-                className="w-full pl-10 pr-10 py-3 rounded-xl glass-strong border border-border/50 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-base shadow-lg"
+                className="w-full pl-10 pr-10 py-3 rounded-xl bg-background/95 backdrop-blur-md border px-4 shadow-xl focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
               />
               <button
                 onClick={() => {
@@ -1032,7 +1032,7 @@ export function MemoryMap({ mapData, mode = "active" }: MemoryMapProps) {
             </div>
 
             {showSearchResults && searchResults.length > 0 && (
-              <div className="mt-2 glass-strong rounded-xl shadow-xl border border-border/50 overflow-hidden max-h-[300px] overflow-y-auto">
+              <div className="mt-2 bg-background/95 backdrop-blur-md rounded-xl shadow-xl border border-border/50 overflow-hidden max-h-[300px] overflow-y-auto">
                 {searchResults.map((result, index) => (
                   <button
                     key={index}

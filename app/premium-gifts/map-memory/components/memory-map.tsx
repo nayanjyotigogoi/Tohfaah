@@ -15,6 +15,7 @@ import {
   Search,
   X as XIcon,
   MapPin as MapPinIcon,
+  LocateFixed,
 } from "lucide-react"
 import type { Memory } from "../../../../lib/memory-types"
 import { AddMemoryModal } from "./add-memory-modal"
@@ -613,6 +614,36 @@ export function MemoryMap({ mapData, mode = "active" }: MemoryMapProps) {
   }
 
   /* ===================================================
+     CURRENT LOCATION
+  ==================================================== */
+
+  const handleCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser")
+      return
+    }
+
+    const toastId = toast.loading("Fetching location...")
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords
+        if (mapRef.current) {
+          mapRef.current.panTo({ lat: latitude, lng: longitude })
+          mapRef.current.setZoom(14)
+        }
+        toast.dismiss(toastId)
+      },
+      (error) => {
+        toast.dismiss(toastId)
+        console.error("Geolocation error:", error)
+        toast.error("Unable to retrieve your location. Please check permissions.")
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    )
+  }
+
+  /* ===================================================
      JOURNEY REPLAY
   ==================================================== */
 
@@ -1090,6 +1121,15 @@ export function MemoryMap({ mapData, mode = "active" }: MemoryMapProps) {
           </div>
         </div>
       )}
+
+      {/* Current Location Button */}
+      <button
+        onClick={handleCurrentLocation}
+        title="Go to current location"
+        className="fixed bottom-24 right-5 sm:bottom-28 sm:right-8 z-[500] w-12 h-12 bg-background/90 backdrop-blur-sm border border-border text-foreground hover:bg-muted rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+      >
+        <LocateFixed size={20} />
+      </button>
 
       {/* Floating Circular Buttons */}
       <div className="fixed bottom-6 left-6 z-[500] flex flex-col gap-3 items-start">

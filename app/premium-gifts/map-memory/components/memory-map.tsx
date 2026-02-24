@@ -30,6 +30,8 @@ import { PasswordGate } from "./password-gate"
 import { BADGES } from "@/lib/memory-types"
 import { Footer } from "@/components/footer"
 import { ExperienceNav } from "@/components/experience-nav"
+import { loadRazorpay } from "@/lib/razorpay"
+import { PRICING } from "@/lib/config"
 const libraries: ("places" | "drawing" | "geometry" | "visualization")[] = ["places"]
 
 const mapContainerStyle: React.CSSProperties = {
@@ -263,6 +265,88 @@ export function MemoryMap({ mapData, mode = "active" }: MemoryMapProps) {
     }
   }
 
+
+  const handlePayment = async () => {
+    try {
+      setIsProcessing(true)
+
+      const res = await loadRazorpay()
+      if (!res) {
+        toast.error("Razorpay SDK failed to load. Are you online?")
+        return
+      }
+
+      // 1. Create Order
+      const orderRes = await apiFetch(`/api/memory-maps/${mapData.id}/create-order`, {
+        method: "POST",
+      })
+      const orderData = await orderRes.json()
+
+      if (!orderData.success) {
+        toast.error(orderData.message || "Failed to initiate payment")
+        return
+      }
+
+      // 2. Open Razorpay Checkout
+      const options = {
+        key: orderData.key_id,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Tohfaah",
+        description: "Memory Map",
+        order_id: orderData.order_id,
+        handler: async function (response: any) {
+          try {
+            // 3. Verify Payment
+            const verifyRes = await apiFetch(`/api/memory-maps/${mapData.id}/verify-payment`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            })
+
+            const verifyData = await verifyRes.json()
+
+            if (verifyData.success) {
+              setLocalPaymentStatus("paid")
+              setShowPaymentPanel(false)
+              toast.success("Payment successful!", {
+                description: "Your map is being published...",
+              })
+              await handlePublish()
+            } else {
+              toast.error(verifyData.message || "Payment verification failed")
+            }
+          } catch (err) {
+            console.error(err)
+            toast.error("Payment verification failed")
+          }
+        },
+        prefill: {
+          email: orderData.contact,
+        },
+        theme: {
+          color: "#e11d48", // Primary color (rose-600)
+        },
+      }
+
+      const rzp1 = new (window as any).Razorpay(options)
+
+      rzp1.on("payment.failed", function (response: any) {
+        toast.error(response.error.description || "Payment failed")
+      })
+
+      rzp1.open()
+    } catch (err) {
+      console.error(err)
+      toast.error("Something went wrong. Please try again.")
+    } finally {
+      setIsProcessing(false)
+    }
+  }
 
   const handlePublish = async () => {
     try {
@@ -1090,7 +1174,7 @@ export function MemoryMap({ mapData, mode = "active" }: MemoryMapProps) {
             <button
               onClick={handleApplyCoupon}
               disabled={isProcessing}
-              className="w-full py-2 rounded-xl bg-primary text-white"
+              className="w-full py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Apply Coupon
             </button>
@@ -1100,23 +1184,11 @@ export function MemoryMap({ mapData, mode = "active" }: MemoryMapProps) {
             </div>
 
             <button
-              onClick={async () => {
-                // ✅ Update payment state
-                setLocalPaymentStatus("paid")
-
-                setShowPaymentPanel(false)
-
-                // ✅ Show success toast
-                toast.success("Payment successful!", {
-                  description: "Your map is being published...",
-                })
-
-                // ✅ Auto-publish and redirect to published map
-                await handlePublish()
-              }}
-              className="w-full py-2 rounded-xl bg-accent text-white"
+              onClick={handlePayment}
+              disabled={isProcessing}
+              className="w-full py-2.5 rounded-xl bg-accent hover:bg-accent/90 text-white font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Pay ₹199
+              Pay {PRICING.memory_map.symbol}{PRICING.memory_map.amount}
             </button>
           </div>
         </div>
@@ -1279,7 +1351,7 @@ export function MemoryMap({ mapData, mode = "active" }: MemoryMapProps) {
                   )
                   toast.success("Link copied to clipboard!")
                 }}
-                className="w-full py-2 rounded-xl bg-primary text-white"
+                className="w-full py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-medium transition-colors shadow-sm"
               >
                 Copy Link
               </button>
@@ -1291,7 +1363,7 @@ export function MemoryMap({ mapData, mode = "active" }: MemoryMapProps) {
                     url: `${process.env.NEXT_PUBLIC_APP_URL}/premium-gifts/map-memory/${publishedToken || mapData.share_token}`,
                   })
                 }}
-                className="w-full py-2 rounded-xl bg-blue-600 text-white"
+                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors shadow-sm"
               >
                 Share Map
               </button>
@@ -1300,7 +1372,7 @@ export function MemoryMap({ mapData, mode = "active" }: MemoryMapProps) {
                 onClick={() =>
                   window.location.href = `/premium-gifts/map-memory/manage/${mapData.id}`
                 }
-                className="w-full py-2 rounded-xl bg-accent text-white"
+                className="w-full py-2.5 rounded-xl bg-accent hover:bg-accent/90 text-white font-medium transition-colors shadow-sm"
               >
                 Manage Map
               </button>

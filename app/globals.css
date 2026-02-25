@@ -127,28 +127,60 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
+
 @keyframes ropeSway {
-  0%   { transform: translateY(0px) }
-  50%  { transform: translateY(3px) }
-  100% { transform: translateY(0px) }
+  0% {
+    transform: translateY(0px)
+  }
+
+  50% {
+    transform: translateY(3px)
+  }
+
+  100% {
+    transform: translateY(0px)
+  }
 }
+
 @keyframes balloon-float {
-  0%, 100% { transform: translate(-50%, 0) translateY(0px); }
-  50% { transform: translate(-50%, 0) translateY(-12px); }
+
+  0%,
+  100% {
+    transform: translate(-50%, 0) translateY(0px);
+  }
+
+  50% {
+    transform: translate(-50%, 0) translateY(-12px);
+  }
 }
 
 @keyframes balloon-launch {
-  0% { transform: translate(-50%, 0) translateY(0); opacity: 1; }
-  100% { transform: translate(-50%, -120vh); opacity: 0; }
+  0% {
+    transform: translate(-50%, 0) translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -120vh);
+    opacity: 0;
+  }
 }
 
 @keyframes heart-float-up {
-  0% { transform: translateY(0) scale(0.8); opacity: 1; }
-  100% { transform: translateY(-120vh) scale(1.2); opacity: 0; }
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-120vh) scale(1.2);
+    opacity: 0;
+  }
 }
 
 .animate-balloon-float {
@@ -167,6 +199,7 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -177,38 +210,85 @@
 /* ========================= */
 
 @keyframes balloonIdle {
-  0%, 100% { transform: translate(-50%, 0px); }
-  50% { transform: translate(-50%, -10px); }
+
+  0%,
+  100% {
+    transform: translate(-50%, 0px);
+  }
+
+  50% {
+    transform: translate(-50%, -10px);
+  }
 }
 
 @keyframes balloonRelease {
-  0% { transform: translate(-50%, 0); opacity: 1; }
-  100% { transform: translate(-50%, -120vh); opacity: 0; }
+  0% {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -120vh);
+    opacity: 0;
+  }
 }
 
 @keyframes heartRise {
-  0% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-80vh); opacity: 0; }
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(-80vh);
+    opacity: 0;
+  }
 }
 
 @keyframes cloudDrift {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(40px); }
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(40px);
+  }
 }
 
 @keyframes cloudDriftReverse {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-40px); }
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-40px);
+  }
 }
 
 @keyframes fadeInUp {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes sparkle {
-  0%, 100% { opacity: 0.3; transform: scale(0.9); }
-  50% { opacity: 1; transform: scale(1.2); }
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 /* Utility classes */
@@ -239,4 +319,59 @@
 
 .animate-sparkle {
   animation: sparkle 3s ease-in-out infinite;
+}
+
+/* ========================= */
+/* 🪞 Glass Shadows & Scrollbars */
+/* ========================= */
+
+.glass {
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+}
+
+.glass-strong {
+  box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* Attractive scrollbar for glass modals */
+.glass::-webkit-scrollbar,
+.glass-strong::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.glass::-webkit-scrollbar-track,
+.glass-strong::-webkit-scrollbar-track {
+  background: rgba(120, 120, 120, 0.1);
+  border-radius: 8px;
+}
+
+.glass::-webkit-scrollbar-thumb,
+.glass-strong::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 120, 0.3);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.glass::-webkit-scrollbar-thumb:hover,
+.glass-strong::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 120, 0.5);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.dark .glass::-webkit-scrollbar-track,
+.dark .glass-strong::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dark .glass::-webkit-scrollbar-thumb,
+.dark .glass-strong::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass::-webkit-scrollbar-thumb:hover,
+.dark .glass-strong::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
 }

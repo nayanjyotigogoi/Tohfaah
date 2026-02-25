@@ -639,19 +639,21 @@ export function MemoryMap({ mapData, mode = "active" }: MemoryMapProps) {
 
     setIsSearching(true)
     try {
-      // Use Nominatim API (OpenStreetMap) - free and no API key required
-      // const response = await fetch(
-      //   `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`,
-      //   {
-      //     headers: {
-      //       'User-Agent': 'Tohfaah Memory Map App', // Required by Nominatim
-      //     },
-      //   }
-      // )
+      let lat = defaultCenter.lat
+      let lng = defaultCenter.lng
+
+      if (mapRef.current) {
+        const center = mapRef.current.getCenter()
+        if (center) {
+          lat = center.lat()
+          lng = center.lng()
+        }
+      }
 
       const response = await fetch(
-        `/api/location-search?q=${encodeURIComponent(query)}`
+        `/api/location-search?q=${encodeURIComponent(query)}&lat=${lat}&lng=${lng}`
       )
+
 
       const data = await response.json()
       setSearchResults(data)

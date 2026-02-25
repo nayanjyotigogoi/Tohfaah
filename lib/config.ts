@@ -5,4 +5,10 @@ export const PRICING = {
         currency: "INR",
         symbol: "₹",
     },
+    memory_map: {
+        amount: 69,
+        originalPrice: 199,
+        currency: "INR",
+        symbol: "₹",
+    },
 }

@@ -35,8 +35,8 @@ const premiumGifts = [
       "Pin your most meaningful moments to real-world locations and build a shared emotional world.",
     color: "from-blue-100 to-indigo-100",
     href: "/premium-gifts/map-memory/create",
-    price: "₹249",
-    originalPrice: "₹799",
+    price: `${PRICING.memory_map.symbol}${PRICING.memory_map.amount}`,
+    originalPrice: `${PRICING.memory_map.symbol}${PRICING.memory_map.originalPrice}`,
   },
   {
     icon: Cake,
@@ -47,7 +47,7 @@ const premiumGifts = [
     href: "/coming-soon",
     price: "₹199",
   },
-  
+
   {
     icon: CalendarDays,
     title: "Anniversary Story",
@@ -85,7 +85,7 @@ const premiumGifts = [
     href: "/coming-soon",
     price: "₹699",
   },
-  
+
 ];
 
 export default function PremiumGiftsPage() {

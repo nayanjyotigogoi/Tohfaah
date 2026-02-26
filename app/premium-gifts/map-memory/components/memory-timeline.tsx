@@ -100,11 +100,9 @@ export function MemoryTimeline({
 
                                 {memory.imageUrl && (
                                   <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
-                                    <Image
+                                    <img
                                       src={memory.imageUrl}
                                       alt={memory.title}
-                                      width={80}
-                                      height={80}
                                       className="w-full h-full object-cover"
                                     />
                                   </div>

@@ -81,12 +81,10 @@ export function PhotoGallery({ memories, initialIndex = 0, onClose }: PhotoGalle
           {/* Image */}
           <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden bg-black/50 shadow-2xl">
             {currentMemory.imageUrl && (
-              <Image
+              <img
                 src={currentMemory.imageUrl}
                 alt={currentMemory.title}
-                fill
-                className="object-contain"
-                priority
+                className="w-full h-full object-contain"
               />
             )}
           </div>
@@ -147,18 +145,15 @@ export function PhotoGallery({ memories, initialIndex = 0, onClose }: PhotoGalle
             <button
               key={memory.id}
               onClick={() => setCurrentIndex(index)}
-              className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden transition-all ${
-                index === currentIndex
-                  ? "ring-2 ring-white scale-110"
-                  : "opacity-50 hover:opacity-100"
-              }`}
+              className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden transition-all ${index === currentIndex
+                ? "ring-2 ring-white scale-110"
+                : "opacity-50 hover:opacity-100"
+                }`}
             >
               {memory.imageUrl && (
-                <Image
+                <img
                   src={memory.imageUrl}
                   alt={memory.title}
-                  width={64}
-                  height={64}
                   className="w-full h-full object-cover"
                 />
               )}

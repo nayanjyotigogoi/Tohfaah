@@ -873,6 +873,16 @@ export function MemoryMap({ mapData, mode = "active" }: MemoryMapProps) {
               streetViewControl: false,
               mapTypeControl: false,
               fullscreenControl: false,
+              minZoom: 3,
+              restriction: {
+                latLngBounds: {
+                  north: 85,
+                  south: -85,
+                  west: -180,
+                  east: 180,
+                },
+                strictBounds: true,
+              },
               styles: [
                 {
                   featureType: "poi",
